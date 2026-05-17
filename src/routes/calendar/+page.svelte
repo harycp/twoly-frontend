@@ -42,7 +42,7 @@
             const ed = new Date(e.event_date);
             return ed.getDate() === selectedDate.getDate() && 
                 ed.getMonth() === selectedDate.getMonth() && 
-               ed.getFullYear() === selectedDate.getFullYear();
+                ed.getFullYear() === selectedDate.getFullYear();
         });
     });
 

@@ -93,7 +93,7 @@
     $effect(() => {
         if (browser && mapElement && (window as any).L && !mapInstance) {
             const L = (window as any).L;
-            const initialLat = latitude || -6.200000; // Default Jakarta
+            const initialLat = latitude || -6.200000; 
             const initialLng = longitude || 106.816666;
 
             mapInstance = L.map(mapElement).setView([initialLat, initialLng], 13);

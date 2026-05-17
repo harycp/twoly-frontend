@@ -14,7 +14,6 @@
     const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    // Men-generate urutan hari (grid) untuk bulan yang sedang dilihat
     let calendarDays = $derived.by(() => {
         const year = currentMonthDate.getFullYear();
         const month = currentMonthDate.getMonth();
@@ -23,15 +22,12 @@
         const daysInPrevMonth = new Date(year, month, 0).getDate();
 
         let days = [];
-        // Sisa hari dari bulan sebelumnya
         for (let i = firstDay - 1; i >= 0; i--) {
             days.push({ date: new Date(year, month - 1, daysInPrevMonth - i), isCurrentMonth: false });
         }
-        // Hari-hari bulan ini
         for (let i = 1; i <= daysInMonth; i++) {
             days.push({ date: new Date(year, month, i), isCurrentMonth: true });
         }
-        // Pelengkap grid agar genap 6 baris (42 kotak)
         const remaining = 42 - days.length;
         for (let i = 1; i <= remaining; i++) {
             days.push({ date: new Date(year, month + 1, i), isCurrentMonth: false });

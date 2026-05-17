@@ -14,7 +14,6 @@
     $effect(() => {
         if (browser && mapElement && (window as any).L && !mapInstance) {
             const L = (window as any).L;
-            // Peta dibuat statis untuk preview (tidak bisa digeser/zoom)
             mapInstance = L.map(mapElement, {
                 zoomControl: false,
                 dragging: false,

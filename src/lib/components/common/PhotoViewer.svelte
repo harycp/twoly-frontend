@@ -3,7 +3,7 @@
     import { browser } from '$app/environment';
     import { fade, scale } from 'svelte/transition';
     import { resolve } from '$app/paths';
-    import { uiStore } from '$lib/stores/ui.store.svelte'; // Impor UI Store
+    import { uiStore } from '$lib/stores/ui.store.svelte';
 
     interface ViewerPhoto {
         id: string;
@@ -24,7 +24,7 @@
     let { photos, activeIndex = $bindable(0), isOpen = $bindable(false) }: Props = $props();
 
     let currentPhoto = $derived(photos[activeIndex]);
-    let showControls = $state(true); // Toggle UI controls on tap
+    let showControls = $state(true);
 
     function next() {
         if (activeIndex < photos.length - 1) activeIndex += 1;
