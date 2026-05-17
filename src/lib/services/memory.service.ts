@@ -12,8 +12,6 @@ export interface CreateMemoryRequest {
     tags?: string[];
 }
 
-export type UpdateMemoryRequest = Partial<CreateMemoryRequest>;
-
 export const memoryService = {
     async getMemories(month?: string): Promise<Memory[]> {
         return await apiService.get<Memory[]>('/memories', {
@@ -21,15 +19,15 @@ export const memoryService = {
         });
     },
 
-    async createMemory(data: CreateMemoryRequest): Promise<Memory> {
-        return await apiService.post<Memory>('/memories', data);
-    },
-
     async getMemoryDetail(id: string): Promise<Memory> {
         return await apiService.get<Memory>(`/memories/${id}`);
     },
 
-    async updateMemory(id: string, data: UpdateMemoryRequest): Promise<Memory> {
+    async createMemory(data: CreateMemoryRequest): Promise<Memory> {
+        return await apiService.post<Memory>('/memories', data);
+    },
+
+    async updateMemory(id: string, data: Partial<CreateMemoryRequest>): Promise<Memory> {
         return await apiService.put<Memory>(`/memories/${id}`, data);
     },
 

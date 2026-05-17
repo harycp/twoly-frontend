@@ -25,18 +25,36 @@
     let partnerName = $derived(coupleStore.partner?.name || 'Partner');
 
     let daysTogether = $derived.by(() => {
-        if (!coupleStore.data?.created_at) return 0;
-        const diffTime = new Date().getTime() - new Date(coupleStore.data.created_at).getTime();
-        return Math.max(0, Math.ceil(diffTime / (1000 * 3600 * 24)));
+        const startDateStr = coupleStore.data?.anniversary_date || coupleStore.data?.created_at;
+        if (!startDateStr) return 0;
+        
+        const startDate = new Date(startDateStr);
+        startDate.setHours(0, 0, 0, 0); 
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const diffTime = today.getTime() - startDate.getTime();
+        return Math.max(0, Math.floor(diffTime / (1000 * 3600 * 24)));
     });
 
+    // FIX: Menghitung sisa hari menuju anniversary berikutnya
     let nextAnniversary = $derived.by(() => {
         if (!coupleStore.data?.anniversary_date) return null;
+        
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
         const annivDate = new Date(coupleStore.data.anniversary_date);
         let next = new Date(today.getFullYear(), annivDate.getMonth(), annivDate.getDate());
-        if (next.getTime() < today.getTime()) next.setFullYear(today.getFullYear() + 1);
-        return Math.ceil((next.getTime() - today.getTime()) / (1000 * 3600 * 24));
+        
+        // Jika anniversary tahun ini sudah lewat, targetkan tahun depan
+        if (next.getTime() < today.getTime()) {
+            next.setFullYear(today.getFullYear() + 1);
+        }
+        
+        const diffTime = next.getTime() - today.getTime();
+        return Math.round(diffTime / (1000 * 3600 * 24));
     });
 
     const memoriesQuery = createQuery(() => ({
@@ -121,8 +139,9 @@
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                 </div>
                 <div>
-                    <p class="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest mb-1">Anniversary</p>
-                    <p class="text-2xl font-black text-gray-900 tracking-tight leading-none">{nextAnniversary} <span class="text-sm font-bold text-gray-400">days</span></p>
+                    <!-- FIX Teks: Diperjelas bahwa ini hitungan mundur -->
+                    <p class="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest mb-1">Next Anniv.</p>
+                    <p class="text-2xl font-black text-gray-900 tracking-tight leading-none">{nextAnniversary} <span class="text-sm font-bold text-gray-400">days left</span></p>
                 </div>
             </div>
             {/if}
@@ -191,7 +210,6 @@
                     {#each recentMemories as memory, i (memory.id)}
                         <a href={resolve(`/memories/${memory.id}` as any)} class="shrink-0 w-64 snap-center relative rounded-[32px] overflow-hidden aspect-[4/5] bg-gray-100 shadow-[0_16px_40px_-15px_rgba(0,0,0,0.08)] transition-transform duration-500 hover:-translate-y-1 active:scale-95 group">
                             
-                            <!-- MENGGUNAKAN KOMPONEN MEMORY COVER CERDAS -->
                             <MemoryCover memoryId={memory.id} fallbackIndex={i} />
 
                             <!-- Cinematic Vignette -->

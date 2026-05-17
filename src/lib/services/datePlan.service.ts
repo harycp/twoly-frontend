@@ -6,6 +6,8 @@ export interface CreateDatePlanRequest {
     notes?: string;
     plan_date: string; // ISO 8601 format
     location_name?: string;
+    latitude?: number;
+    longitude?: number;
     checklists?: string[];
 }
 
@@ -24,7 +26,18 @@ export const datePlanService = {
         return await apiService.get<DatePlan>(`/date-plans/${id}`);
     },
 
-    
+    // --- FUNGSI EDIT DAN DELETE YANG SEBELUMNYA TERTINGGAL ---
+
+    async updateDatePlan(id: string, data: Partial<CreateDatePlanRequest>): Promise<DatePlan> {
+        return await apiService.put<DatePlan>(`/date-plans/${id}`, data);
+    },
+
+    async deleteDatePlan(id: string): Promise<void> {
+        return await apiService.delete(`/date-plans/${id}`);
+    },
+
+    // --- FUNGSI LAINNYA ---
+
     async updateDatePlanStatus(id: string, data: { status: string }): Promise<DatePlan> {
         return await apiService.patch<DatePlan>(`/date-plans/${id}/status`, data);
     },

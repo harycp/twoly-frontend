@@ -14,13 +14,47 @@
     import PageHeader from '$lib/components/layout/PageHeader.svelte';
     import MoodBadge from '$lib/components/memories/MoodBadge.svelte';
     import Button from '$lib/components/common/Button.svelte';
+    import LocationMapPreview from '$lib/components/common/LocationMapPreview.svelte';
     import PhotoViewer from '$lib/components/common/PhotoViewer.svelte';
+    
+    import Input from '$lib/components/common/Input.svelte';
+    import Textarea from '$lib/components/common/Textarea.svelte';
+    import LocationPicker from '$lib/components/common/LocationPicker.svelte';
+    import TagsInput from '$lib/components/common/TagsInput.svelte';
+    import AlertDialog from '$lib/components/common/AlertDialog.svelte';
+    import DeleteButton from '$lib/components/common/DeleteButton.svelte';
 
     const memoryId = page.params.id as string;
     const queryClient = useQueryClient();
 
     let isUploading = $state(false);
     let fileInput: HTMLInputElement;
+
+    let isEditing = $state(false);
+    let isSaving = $state(false);
+    let photoDeletingId = $state<string | null>(null);
+
+    let alertState = $state({ isOpen: false, title: '', message: '' });
+
+    let photoToDelete = $state<string | null>(null);
+    let isPhotoDeleteDialogOpen = $state(false);
+
+    let editTitle = $state('');
+    let editMemoryDate = $state('');
+    let editDescription = $state('');
+    let editMood = $state('');
+    let editLocationName = $state('');
+    let editLatitude = $state<number | undefined>(undefined);
+    let editLongitude = $state<number | undefined>(undefined);
+    let editTags = $state<string[]>([]);
+
+    const moods = [
+        { label: 'Happy', value: 'happy' },
+        { label: 'Romantic', value: 'romantic' },
+        { label: 'Excited', value: 'excited' },
+        { label: 'Sad', value: 'sad' },
+        { label: 'Chill', value: 'chill' }
+    ];
 
     let isViewerOpen = $state(false);
     let activePhotoIndex = $state(0);
@@ -44,7 +78,10 @@
     let photos = $derived(photosQuery.data || []);
 
     let viewerPhotos = $derived(photos.map(p => ({
-        ...p,
+        id: p.id,
+        photo_url: p.photo_url,
+        caption: p.caption,
+        memory_id: memoryId,
         memory_title: memory ? memory.title : '',
         memory_date: memory ? memory.memory_date : ''
     })));
@@ -52,6 +89,83 @@
     const formatDateClean = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
     };
+
+    function startEditing() {
+        if (!memory) return;
+        editTitle = memory.title;
+        editMemoryDate = memory.memory_date.split('T')[0];
+        editDescription = memory.description || '';
+        editMood = memory.mood || '';
+        editLocationName = memory.location_name || '';
+        editLatitude = memory.latitude;
+        editLongitude = memory.longitude;
+        editTags = memory.tags ? [...memory.tags] : [];
+        isEditing = true;
+    }
+
+    async function handleSaveEdit(e: SubmitEvent) {
+        e.preventDefault();
+        isSaving = true;
+        try {
+            await memoryService.updateMemory(memoryId, {
+                title: editTitle,
+                memory_date: editMemoryDate,
+                description: editDescription,
+                mood: editMood,
+                location_name: editLocationName,
+                latitude: editLatitude,
+                longitude: editLongitude,
+                tags: editTags
+            });
+            
+            queryClient.invalidateQueries({ queryKey: ['memory', memoryId] });
+            queryClient.invalidateQueries({ queryKey: ['memories'] });
+            queryClient.invalidateQueries({ queryKey: ['couple-gallery'] });
+            queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+            
+            isEditing = false;
+        } catch (error) {
+            console.error(error);
+            alertState = { isOpen: true, title: 'Error', message: 'Failed to update memory.' };
+        } finally {
+            isSaving = false;
+        }
+    }
+
+    async function handleDeleteMemory() {
+        try {
+            await memoryService.deleteMemory(memoryId);
+            queryClient.invalidateQueries({ queryKey: ['memories'] });
+            queryClient.invalidateQueries({ queryKey: ['couple-gallery'] });
+            queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+            await goto(resolve('/memories' as any));
+        } catch (error) {
+            console.error(error);
+            alertState = { isOpen: true, title: 'Error', message: 'Failed to delete memory.' };
+        }
+    }
+
+    function promptDeletePhoto(photoId: string) {
+        photoToDelete = photoId;
+        isPhotoDeleteDialogOpen = true;
+    }
+
+    async function confirmDeletePhoto() {
+        if (!photoToDelete) return;
+        photoDeletingId = photoToDelete;
+        isPhotoDeleteDialogOpen = false;
+        try {
+            await photoService.deletePhoto(memoryId, photoToDelete);
+            queryClient.invalidateQueries({ queryKey: ['memory-photos', memoryId] });
+            queryClient.invalidateQueries({ queryKey: ['couple-gallery'] });
+        } catch (error) {
+            console.error(error);
+            alertState = { isOpen: true, title: 'Error', message: 'Failed to delete photo.' };
+        } finally {
+            photoDeletingId = null;
+            photoToDelete = null;
+        }
+    }
 
     async function handleFileSelect(event: Event) {
         const input = event.target as HTMLInputElement;
@@ -63,7 +177,7 @@
             queryClient.invalidateQueries({ queryKey: ['memory-photos', memoryId] });
             queryClient.invalidateQueries({ queryKey: ['couple-gallery'] });
         } catch (error) {
-            alert('Failed to upload photos.');
+            alertState = { isOpen: true, title: 'Upload Failed', message: 'Failed to upload photos.' };
             console.error(error);
         } finally {
             isUploading = false;
@@ -72,6 +186,7 @@
     }
 
     function openPhotoViewer(index: number) {
+        if (isEditing) return; 
         activePhotoIndex = index;
         isViewerOpen = true;
     }
@@ -79,62 +194,130 @@
 
 <MobileShell>
     <PageHeader 
-        title={memory ? memory.title : 'Loading...'} 
-        subtitle={memory ? formatDateClean(memory.memory_date.toString()) : ''} 
-        backUrl="/memories" 
-    />
+        title={isEditing ? 'Edit Memory' : memory ? memory.title : 'Loading...'} 
+        subtitle={isEditing ? '' : memory ? formatDateClean(memory.memory_date.toString()) : ''} 
+        backUrl={isEditing ? undefined : "/memories"}
+    >
+        {#snippet rightContent()}
+            {#if memory}
+                {#if isEditing}
+                    <button onclick={() => isEditing = false} class="px-2 text-[13px] font-bold text-gray-500 hover:text-gray-800 transition-colors">Cancel</button>
+                {:else}
+                    <button aria-label="Edit Memory" onclick={startEditing} class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm border border-gray-100 text-gray-700 active:scale-90 transition-transform">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                {/if}
+            {/if}
+        {/snippet}
+    </PageHeader>
 
     <main class="px-6 pt-6 pb-32 space-y-10">
-        <section class="relative">
-            <div class="absolute -right-10 top-0 h-32 w-32 rounded-full bg-[#FED7AA] opacity-20 blur-3xl pointer-events-none"></div>
-            
-            {#if memoryQuery.isPending}
-                <div class="space-y-4 mt-4">
-                    <div class="h-10 w-3/4 animate-pulse rounded-xl bg-gray-200"></div>
-                    <div class="h-4 w-1/2 animate-pulse rounded-lg bg-gray-200"></div>
+        
+        {#if isEditing}
+            <form onsubmit={handleSaveEdit} class="space-y-6">
+                <Input label="Title" type="text" placeholder="e.g. Our First Trip" bind:value={editTitle} required />
+                
+                <Input label="Date" type="date" bind:value={editMemoryDate} required />
+                
+                <LocationPicker 
+                    bind:locationName={editLocationName} 
+                    bind:latitude={editLatitude} 
+                    bind:longitude={editLongitude} 
+                />
+
+                <Textarea 
+                    label="Story" 
+                    id="editStory"
+                    bind:value={editDescription} 
+                    rows={4} 
+                    placeholder="Write down the beautiful details..."
+                />
+
+                <div class="flex flex-col gap-2 w-full">
+                    <label class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">Vibe / Mood</label>
+                    <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-4 pt-1 px-1 -mx-1">
+                        {#each moods as m (m.value)}
+                            <button 
+                                type="button" 
+                                onclick={() => editMood = m.value} 
+                                class="shrink-0 px-6 py-3.5 rounded-full border transition-all duration-300 active:scale-95 flex items-center justify-center {editMood === m.value ? 'bg-gray-900 border-gray-900 text-white shadow-md' : 'bg-white/40 border-white/60 text-gray-500 hover:bg-white/60'}"
+                            >
+                                <span class="text-[12px] font-black uppercase tracking-widest">{m.label}</span>
+                            </button>
+                        {/each}
+                    </div>
                 </div>
-            {:else if memory}
-                <div class="pt-2">
-                    <h1 class="text-4xl font-black text-gray-900 tracking-tight leading-tight mb-4">{memory.title}</h1>
-                    
-                    <div class="flex flex-wrap gap-2 mb-6 items-center">
-                        {#if memory.location_name}
-                            <span class="inline-flex items-center gap-1.5 rounded-full bg-white/40 backdrop-blur-xl border border-white/60 px-3 py-1.5 text-xs font-bold text-gray-600 shadow-sm">
-                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                {memory.location_name}
-                            </span>
-                        {/if}
+
+                <TagsInput bind:tags={editTags} />
+
+                <div class="pt-4">
+                    <Button type="submit" class="w-full" isLoading={isSaving}>Save Changes</Button>
+                </div>
+            </form>
+
+        {:else}
+            <section class="relative">
+                <div class="absolute -right-10 top-0 h-32 w-32 rounded-full bg-[#FED7AA] opacity-20 blur-3xl pointer-events-none"></div>
+                
+                {#if memoryQuery.isPending}
+                    <div class="space-y-4 mt-4">
+                        <div class="h-10 w-3/4 animate-pulse rounded-xl bg-gray-200"></div>
+                        <div class="h-4 w-1/2 animate-pulse rounded-lg bg-gray-200"></div>
+                    </div>
+                {:else if memory}
+                    <div class="pt-2">
+                        <h1 class="text-4xl font-black text-gray-900 tracking-tight leading-tight mb-4">{memory.title}</h1>
                         
-                        {#if memory.mood}
-                            <MoodBadge mood={memory.mood} />
+                        <div class="flex flex-wrap gap-2 mb-6 items-center">
+                            {#if memory.location_name && (!memory.latitude || !memory.longitude)}
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-white/40 backdrop-blur-xl border border-white/60 px-3 py-1.5 text-xs font-bold text-gray-600 shadow-sm">
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    {memory.location_name}
+                                </span>
+                            {/if}
+                            
+                            {#if memory.mood}
+                                <MoodBadge mood={memory.mood} />
+                            {/if}
+                        </div>
+
+                        {#if memory.latitude && memory.longitude}
+                            <div class="mb-6">
+                                <LocationMapPreview 
+                                    latitude={memory.latitude} 
+                                    longitude={memory.longitude} 
+                                    locationName={memory.location_name} 
+                                />
+                            </div>
+                        {/if}
+
+                        {#if memory.description}
+                            <p class="text-[15px] font-medium text-gray-600 leading-relaxed tracking-wide mt-6">
+                                {memory.description}
+                            </p>
+                        {/if}
+
+                        {#if memory.tags && memory.tags.length > 0}
+                            <div class="flex flex-wrap gap-2 mt-6">
+                                {#each memory.tags as tag (tag)}
+                                    <span class="inline-flex items-center rounded-full bg-white/40 backdrop-blur-xl border border-white/60 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-gray-500 shadow-sm">
+                                        #{tag}
+                                    </span>
+                                {/each}
+                            </div>
                         {/if}
                     </div>
+                {/if}
+            </section>
+        {/if}
 
-                    {#if memory.description}
-                        <p class="text-[15px] font-medium text-gray-600 leading-relaxed tracking-wide">
-                            {memory.description}
-                        </p>
-                    {/if}
-
-                    {#if memory.tags && memory.tags.length > 0}
-                        <div class="flex flex-wrap gap-2 mt-6">
-                            {#each memory.tags as tag (tag)}
-                                <span class="inline-flex items-center rounded-full bg-white/40 backdrop-blur-xl border border-white/60 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-gray-500 shadow-sm">
-                                    #{tag}
-                                </span>
-                            {/each}
-                        </div>
-                    {/if}
-                </div>
-            {/if}
-        </section>
-
-        <!-- GALLERY SECTION -->
         <section>
             <div class="flex items-center justify-between mb-6">
                 <div class="flex flex-col">
                     <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">Gallery</h2>
-                    <span class="text-[13px] font-bold text-gray-400">{photos.length} photos</span>
+                    <span class="text-[13px] font-bold text-gray-400">
+                        {isEditing ? 'Manage photos' : `${photos.length} photos`}
+                    </span>
                 </div>
                 
                 <input type="file" multiple accept="image/*" class="hidden" bind:this={fileInput} onchange={handleFileSelect} />
@@ -161,18 +344,56 @@
             {:else}
                 <div class="grid grid-cols-2 gap-4">
                     {#each photos as photo, i (photo.id)}
-                        <button 
-                            type="button"
-                            onclick={() => openPhotoViewer(i)}
-                            class="group relative aspect-[3/4] overflow-hidden rounded-[24px] bg-gray-100 shadow-sm border border-white/60 text-left transition-transform active:scale-95 hover:scale-[1.01]"
-                        >
-                            <img src={photo.photo_url} alt="Memory" class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" loading="lazy" />
-                            <div class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                        </button>
+                        <div class="group relative aspect-[3/4] overflow-hidden rounded-[24px] bg-gray-100 shadow-sm border border-white/60">
+                            <!-- Tombol Viewer (Normal) atau Tombol Pasif (Edit) -->
+                            <button 
+                                type="button"
+                                onclick={() => openPhotoViewer(i)}
+                                class="h-full w-full outline-none text-left transition-transform active:scale-95 {isEditing ? 'cursor-default active:scale-100' : 'hover:scale-[1.01]'}"
+                            >
+                                <img src={photo.photo_url} alt="Memory" class="h-full w-full object-cover transition-transform duration-700 ease-out {isEditing ? '' : 'group-hover:scale-105'}" loading="lazy" />
+                                {#if !isEditing}
+                                    <div class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                                {/if}
+                            </button>
+
+                            <!-- OVERLAY DELETE (Hanya Muncul Saat Mode Edit) -->
+                            {#if isEditing}
+                                <div class="absolute inset-0 bg-black/30 flex items-center justify-center backdrop-blur-[2px]">
+                                    {#if photoDeletingId === photo.id}
+                                        <svg class="h-8 w-8 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    {:else}
+                                        <button 
+                                            type="button" 
+                                            onclick={() => promptDeletePhoto(photo.id)}
+                                            class="flex h-12 w-12 items-center justify-center rounded-full bg-red-500 text-white shadow-lg active:scale-90 transition-transform"
+                                            aria-label="Delete Photo"
+                                        >
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    {/if}
+                                </div>
+                            {/if}
+                        </div>
                     {/each}
                 </div>
             {/if}
         </section>
+
+        <!-- TOMBOL HAPUS MEMORI -->
+        {#if memory && isEditing}
+            <section class="pt-6 border-t border-red-200/50">
+                <DeleteButton 
+                    label="Delete Memory Entirely"
+                    dialogTitle="Delete Memory"
+                    dialogMessage="Are you sure you want to delete this memory? All photos attached to it will also be lost forever."
+                    onDelete={handleDeleteMemory}
+                />
+                <p class="text-center text-[11px] font-bold text-gray-400 mt-3 px-4">
+                    Danger zone: Deleting this memory will also wipe out all its photos.
+                </p>
+            </section>
+        {/if}
     </main>
 
     <!-- FLOATING EXCLUSIVE VIEWER -->
@@ -182,3 +403,19 @@
         bind:isOpen={isViewerOpen} 
     />
 </MobileShell>
+
+<AlertDialog 
+    bind:isOpen={alertState.isOpen} 
+    title={alertState.title} 
+    message={alertState.message} 
+/>
+
+<AlertDialog 
+    bind:isOpen={isPhotoDeleteDialogOpen}
+    title="Delete Photo"
+    message="Are you sure you want to delete this photo?"
+    confirmText="Delete"
+    cancelText="Cancel"
+    isDestructive={true}
+    onConfirm={confirmDeletePhoto}
+/>
