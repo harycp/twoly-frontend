@@ -19,17 +19,14 @@
         ...rest
     }: Props = $props();
 
-    // Base classes dengan transisi smooth dan springy click effect (active:scale-95)
     const baseClasses = "relative inline-flex items-center justify-center font-bold transition-all duration-300 ease-out active:scale-95 disabled:opacity-60 disabled:active:scale-100 overflow-hidden";
 
-    // Varian modern, premium, dan warm
     const variants = {
         primary: "bg-gradient-to-r from-[#FDA4AF] to-[#F8B4C8] text-white shadow-[0_8px_20px_-6px_rgba(253,164,175,0.5)] hover:shadow-[0_12px_25px_-6px_rgba(253,164,175,0.6)]",
         secondary: "bg-white text-gray-800 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.05)] border border-gray-100 hover:shadow-[0_8px_20px_-5px_rgba(0,0,0,0.08)]",
         ghost: "bg-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
     };
 
-    // Ukuran dibuat lebih besar (breathable) ala modern mobile apps
     const sizes = {
         md: "h-12 px-6 text-sm rounded-full",
         lg: "h-14 px-8 text-base rounded-full"

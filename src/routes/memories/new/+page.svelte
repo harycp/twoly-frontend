@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import { resolve } from '$app/paths';
+    import { useQueryClient } from '@tanstack/svelte-query';
     import { authStore } from '$lib/stores/auth.store.svelte';
     import { coupleStore } from '$lib/stores/couple.store.svelte';
     import { memoryService } from '$lib/services/memory.service';
@@ -24,7 +25,6 @@
     let description = $state('');
     let mood = $state('');
     
-    // State baru untuk mengakomodasi LocationPicker & TagsInput
     let location_name = $state('');
     let latitude = $state<number | undefined>(undefined);
     let longitude = $state<number | undefined>(undefined);
@@ -32,6 +32,8 @@
     
     let isLoading = $state(false);
     let errorMessage = $state('');
+
+    const queryClient = useQueryClient();
 
     const moods = [
         { label: 'Happy', value: 'happy' },
@@ -57,6 +59,11 @@
                 mood, 
                 tags 
             });
+            
+            queryClient.invalidateQueries({ queryKey: ['memories'] });
+            queryClient.invalidateQueries({ queryKey: ['couple-gallery'] });
+            queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+
             await goto(resolve('/memories' as any));
         } catch (error: unknown) {
             errorMessage = error instanceof Error ? error.message : 'Failed to save your moment.';
@@ -81,7 +88,7 @@
             
             <Input label="Date" type="date" bind:value={memory_date} required />
             
-            <!-- MENGGUNAKAN REUSABLE COMPONENT LOCATION PICKER DENGAN GPS -->
+            <!-- REUSABLE COMPONENT LOCATION PICKER DENGAN REAL MAPS & PEMISAHAN LOGIKA -->
             <LocationPicker 
                 bind:locationName={location_name} 
                 bind:latitude={latitude} 
@@ -103,7 +110,7 @@
                         <button 
                             type="button" 
                             onclick={() => mood = m.value} 
-                            class="shrink-0 px-6 py-3.5 rounded-full border transition-all duration-300 active:scale-95 flex items-center justify-center {mood === m.value ? 'bg-gray-900 border-gray-900 text-white shadow-[0_8px_20px_-6px_rgba(0,0,0,0.3)]' : 'bg-white/70 border-white/60 text-gray-500 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.02)] hover:border-gray-200 hover:bg-white'}"
+                            class="shrink-0 px-6 py-3.5 rounded-full border transition-all duration-300 active:scale-95 flex items-center justify-center {mood === m.value ? 'bg-gray-900 border-gray-900 text-white shadow-[0_8px_20px_-6px_rgba(0,0,0,0.3)]' : 'bg-white/40 backdrop-blur-xl border-white/60 text-gray-500 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.02)] hover:border-gray-200 hover:bg-white/60'}"
                         >
                             <span class="text-[12px] font-black uppercase tracking-widest">{m.label}</span>
                         </button>
@@ -111,10 +118,9 @@
                 </div>
             </div>
 
-            <!-- MENGGUNAKAN REUSABLE COMPONENT TAGS INPUT -->
             <TagsInput bind:tags={tags} />
 
-            <div class="pt-4">
+            <div class="pt-6">
                 <Button type="submit" class="w-full" {isLoading}>Save Memory</Button>
             </div>
         </form>

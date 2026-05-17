@@ -21,7 +21,6 @@
     let mapInstance: any = null;
     let markerInstance: any = null;
 
-    // Fungsi Mencari Lokasi via Teks (Geocoding)
     async function searchLocation() {
         if (!locationName.trim()) return;
         
@@ -46,7 +45,6 @@
         }
     }
 
-    // Fungsi Menggunakan GPS Device
     async function handleGetLocation() {
         if (!navigator.geolocation) {
             locationError = "Geolocation is not supported by your browser.";
@@ -71,7 +69,6 @@
         );
     }
 
-    // Memperbarui posisi peta dan marker
     function updateMapPosition(lat: number, lng: number, recenter: boolean = false) {
         if (!mapInstance || !(window as any).L) return;
         
@@ -85,7 +82,6 @@
         } else {
             markerInstance = L.marker(latlng, { draggable: true }).addTo(mapInstance);
             
-            // Event saat marker selesai digeser manual oleh user
             markerInstance.on('dragend', function(e: any) {
                 const pos = e.target.getLatLng();
                 latitude = parseFloat(pos.lat.toFixed(6));
@@ -94,7 +90,6 @@
         }
     }
 
-    // Inisialisasi Peta Pertama Kali
     $effect(() => {
         if (browser && mapElement && (window as any).L && !mapInstance) {
             const L = (window as any).L;
@@ -112,7 +107,6 @@
                 updateMapPosition(latitude, longitude, true);
             }
 
-            // Memungkinkan user mengklik area peta untuk memindahkan marker
             mapInstance.on('click', (e: any) => {
                 latitude = parseFloat(e.latlng.lat.toFixed(6));
                 longitude = parseFloat(e.latlng.lng.toFixed(6));

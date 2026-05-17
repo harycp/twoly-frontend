@@ -24,7 +24,6 @@ export const datePlanService = {
         return await apiService.get<DatePlan>(`/date-plans/${id}`);
     },
 
-    // Fungsi-fungsi di bawah ini ditambahkan untuk menyelesaikan error TypeScript
     
     async updateDatePlanStatus(id: string, data: { status: string }): Promise<DatePlan> {
         return await apiService.patch<DatePlan>(`/date-plans/${id}/status`, data);

@@ -20,7 +20,6 @@
     let selectedDate = $state(new Date());
     let currentMonthDate = $state(new Date());
 
-    // Hitung range bulan untuk Query DB (Diambil 1 bulan sebelum dan 1 bulan sesudah untuk buffer)
     let startDateStr = $derived.by(() => {
         const d = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() - 1, 1);
         return d.toISOString().split('T')[0];
@@ -31,7 +30,6 @@
         return d.toISOString().split('T')[0];
     });
 
-    // Auto-fetch data setiap kali pindah bulan
     const eventsQuery = createQuery(() => ({
         queryKey: ['calendar-events', startDateStr, endDateStr],
         queryFn: () => calendarService.getEvents(startDateStr, endDateStr)
@@ -39,13 +37,12 @@
 
     let events = $derived(eventsQuery.data || []);
     
-    // Filter event berdasarkan tanggal yang diklik
     let selectedDayEvents = $derived.by(() => {
         return events.filter(e => {
             const ed = new Date(e.event_date);
             return ed.getDate() === selectedDate.getDate() && 
-                   ed.getMonth() === selectedDate.getMonth() && 
-                   ed.getFullYear() === selectedDate.getFullYear();
+                ed.getMonth() === selectedDate.getMonth() && 
+               ed.getFullYear() === selectedDate.getFullYear();
         });
     });
 

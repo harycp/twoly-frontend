@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import { resolve } from '$app/paths';
+    import { useQueryClient } from '@tanstack/svelte-query';
     import { authStore } from '$lib/stores/auth.store.svelte';
     import { coupleStore } from '$lib/stores/couple.store.svelte';
     import { datePlanService } from '$lib/services/datePlan.service';
@@ -12,7 +13,7 @@
     import Textarea from '$lib/components/common/Textarea.svelte';
     import Button from '$lib/components/common/Button.svelte';
     import LocationPicker from '$lib/components/common/LocationPicker.svelte';
-    import TagsInput from '$lib/components/common/TagsInput.svelte'; // Dipakai untuk Checklist!
+    import TagsInput from '$lib/components/common/TagsInput.svelte';
 
     onMount(() => {
         if (!authStore.isAuthenticated) goto(resolve('/login' as any));
@@ -20,10 +21,9 @@
     });
 
     let title = $state('');
-    let plan_date = $state(''); // Datetime-local
+    let plan_date = $state(''); 
     let notes = $state('');
     
-    // Mengakomodasi State Location & Checklist Reusable
     let location_name = $state('');
     let latitude = $state<number | undefined>(undefined);
     let longitude = $state<number | undefined>(undefined);
@@ -31,6 +31,8 @@
     
     let isLoading = $state(false);
     let errorMessage = $state('');
+
+    const queryClient = useQueryClient();
 
     async function handleSubmit(event: SubmitEvent) {
         event.preventDefault();
@@ -51,6 +53,9 @@
                 notes, 
                 checklists 
             });
+            
+            queryClient.invalidateQueries({ queryKey: ['date-plans'] });
+            queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
             
             await goto(resolve('/date-plans' as any));
         } catch (error: unknown) {

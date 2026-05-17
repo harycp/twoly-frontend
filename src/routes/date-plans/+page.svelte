@@ -7,34 +7,29 @@
     import { authStore } from '$lib/stores/auth.store.svelte';
     import { coupleStore } from '$lib/stores/couple.store.svelte';
     import { datePlanService } from '$lib/services/datePlan.service';
-    import { calendarService } from '$lib/services/calendar.service'; // Memanggil layanan kalender
+    import { calendarService } from '$lib/services/calendar.service';
     
     import MobileShell from '$lib/components/layout/MobileShell.svelte';
     import PageHeader from '$lib/components/layout/PageHeader.svelte';
     import Tabs from '$lib/components/common/Tabs.svelte';
     import DatePlanCard from '$lib/components/date-plans/DatePlanCard.svelte';
-    import CoupleCalendar from '$lib/components/calendar/CoupleCalendar.svelte'; // Komponen Heat Map Kalender
+    import CoupleCalendar from '$lib/components/calendar/CoupleCalendar.svelte'; 
 
     onMount(() => {
         if (!authStore.isAuthenticated) goto(resolve('/login' as any));
         else if (!coupleStore.isActive) goto(resolve('/join-couple' as any));
     });
 
-    // --- TAB STATE ---
-    // Ditambahkan 'calendar' sebagai tab ketiga
     let currentTab = $state('planned'); 
 
-    // --- LOGIKA DATE PLANS (UPCOMING & PAST) ---
     const plansQuery = createQuery(() => ({
         queryKey: ['date-plans', currentTab],
         queryFn: () => datePlanService.getDatePlans(currentTab),
-        // Hanya nge-fetch Date Plans biasa jika tab BUKAN calendar
         enabled: currentTab !== 'calendar'
     }));
 
     let plans = $derived(plansQuery.data || []);
 
-    // --- LOGIKA KALENDER ---
     let selectedDate = $state(new Date());
     let currentMonthDate = $state(new Date());
 
@@ -51,7 +46,6 @@
     const calendarEventsQuery = createQuery(() => ({
         queryKey: ['calendar-events', startDateStr, endDateStr],
         queryFn: () => calendarService.getEvents(startDateStr, endDateStr),
-        // Hanya nge-fetch data kalender dari API saat Tab Calendar sedang aktif
         enabled: currentTab === 'calendar' 
     }));
 
@@ -83,19 +77,17 @@
 
     <main class="px-6 pt-6 pb-32 space-y-8">
         
-        <!-- TABS PINTAR 3 BAGIAN -->
         <Tabs 
             items={[ 
                 { value: 'planned', label: 'Upcoming' }, 
                 { value: 'completed', label: 'Past Dates' },
-                { value: 'calendar', label: 'Calendar' } // Tab Baru!
+                { value: 'calendar', label: 'Calendar' }
             ]} 
             activeValue={currentTab} 
             onChange={(val) => currentTab = val} 
         />
 
         {#if currentTab === 'calendar'}
-            <!-- ==== VIEW: CALENDAR HEAT MAP ==== -->
             <section class="relative space-y-8 transition-opacity duration-300">
                 <!-- Glow background -->
                 <div class="absolute -right-5 top-10 h-32 w-32 rounded-full bg-[#FED7AA] opacity-20 blur-3xl pointer-events-none"></div>

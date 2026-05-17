@@ -14,13 +14,16 @@
     import PageHeader from '$lib/components/layout/PageHeader.svelte';
     import MoodBadge from '$lib/components/memories/MoodBadge.svelte';
     import Button from '$lib/components/common/Button.svelte';
-    import LocationMapPreview from '$lib/components/common/LocationMapPreview.svelte'; // <-- IMPORT MAP PREVIEW
+    import PhotoViewer from '$lib/components/common/PhotoViewer.svelte';
 
     const memoryId = page.params.id as string;
     const queryClient = useQueryClient();
 
     let isUploading = $state(false);
     let fileInput: HTMLInputElement;
+
+    let isViewerOpen = $state(false);
+    let activePhotoIndex = $state(0);
 
     onMount(() => {
         if (!authStore.isAuthenticated) goto(resolve('/login' as any));
@@ -40,6 +43,12 @@
     let memory = $derived(memoryQuery.data);
     let photos = $derived(photosQuery.data || []);
 
+    let viewerPhotos = $derived(photos.map(p => ({
+        ...p,
+        memory_title: memory ? memory.title : '',
+        memory_date: memory ? memory.memory_date : ''
+    })));
+
     const formatDateClean = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
     };
@@ -52,6 +61,7 @@
         try {
             await photoService.uploadPhotos(memoryId, input.files);
             queryClient.invalidateQueries({ queryKey: ['memory-photos', memoryId] });
+            queryClient.invalidateQueries({ queryKey: ['couple-gallery'] });
         } catch (error) {
             alert('Failed to upload photos.');
             console.error(error);
@@ -59,6 +69,11 @@
             isUploading = false;
             if (fileInput) fileInput.value = '';
         }
+    }
+
+    function openPhotoViewer(index: number) {
+        activePhotoIndex = index;
+        isViewerOpen = true;
     }
 </script>
 
@@ -83,7 +98,7 @@
                     <h1 class="text-4xl font-black text-gray-900 tracking-tight leading-tight mb-4">{memory.title}</h1>
                     
                     <div class="flex flex-wrap gap-2 mb-6 items-center">
-                        {#if memory.location_name && (!memory.latitude || !memory.longitude)}
+                        {#if memory.location_name}
                             <span class="inline-flex items-center gap-1.5 rounded-full bg-white/40 backdrop-blur-xl border border-white/60 px-3 py-1.5 text-xs font-bold text-gray-600 shadow-sm">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 {memory.location_name}
@@ -95,19 +110,8 @@
                         {/if}
                     </div>
 
-                    <!-- MENGGUNAKAN MAP PREVIEW DI SINI JIKA KOORDINAT TERSEDIA -->
-                    {#if memory.latitude && memory.longitude}
-                        <div class="mb-6">
-                            <LocationMapPreview 
-                                latitude={memory.latitude} 
-                                longitude={memory.longitude} 
-                                locationName={memory.location_name} 
-                            />
-                        </div>
-                    {/if}
-
                     {#if memory.description}
-                        <p class="text-[15px] font-medium text-gray-600 leading-relaxed tracking-wide mt-6">
+                        <p class="text-[15px] font-medium text-gray-600 leading-relaxed tracking-wide">
                             {memory.description}
                         </p>
                     {/if}
@@ -156,14 +160,25 @@
                 </div>
             {:else}
                 <div class="grid grid-cols-2 gap-4">
-                    {#each photos as photo (photo.id)}
-                        <div class="group relative aspect-[3/4] overflow-hidden rounded-[24px] bg-gray-100 shadow-sm">
+                    {#each photos as photo, i (photo.id)}
+                        <button 
+                            type="button"
+                            onclick={() => openPhotoViewer(i)}
+                            class="group relative aspect-[3/4] overflow-hidden rounded-[24px] bg-gray-100 shadow-sm border border-white/60 text-left transition-transform active:scale-95 hover:scale-[1.01]"
+                        >
                             <img src={photo.photo_url} alt="Memory" class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                        </div>
+                            <div class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                        </button>
                     {/each}
                 </div>
             {/if}
         </section>
     </main>
+
+    <!-- FLOATING EXCLUSIVE VIEWER -->
+    <PhotoViewer 
+        photos={viewerPhotos} 
+        bind:activeIndex={activePhotoIndex} 
+        bind:isOpen={isViewerOpen} 
+    />
 </MobileShell>

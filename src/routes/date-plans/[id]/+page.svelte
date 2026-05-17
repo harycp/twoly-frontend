@@ -40,7 +40,6 @@
         return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
 
-    // --- CHECKLIST HANDLERS ---
     async function handleAddChecklist(e: SubmitEvent) {
         e.preventDefault();
         if (!newItemText.trim()) return;
@@ -75,12 +74,12 @@
         }
     }
 
-    // --- ACTION HANDLERS ---
     async function handleMarkAsCompleted() {
         try {
             await datePlanService.updateDatePlanStatus(planId, { status: 'completed' });
             queryClient.invalidateQueries({ queryKey: ['date-plan', planId] });
             queryClient.invalidateQueries({ queryKey: ['date-plans'] });
+            queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
         } catch (error) {
             console.error(error);
         }
@@ -90,6 +89,11 @@
         isConverting = true;
         try {
             const memoryRes = await datePlanService.convertToMemory(planId);
+            
+            queryClient.invalidateQueries({ queryKey: ['date-plans'] });
+            queryClient.invalidateQueries({ queryKey: ['memories'] });
+            queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+            
             await goto(resolve(`/memories/${memoryRes.id}` as any));
         } catch (error) {
             console.error(error);

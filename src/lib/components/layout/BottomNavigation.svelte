@@ -1,6 +1,7 @@
 <script lang="ts">
     import { page } from '$app/state';
     import { resolve } from '$app/paths';
+    import { uiStore } from '$lib/stores/ui.store.svelte';
 
     const navItems = [
         { name: 'Home', path: '/dashboard', icon: 'home' },
@@ -11,7 +12,7 @@
     ];
 </script>
 
-<nav class="fixed bottom-6 left-4 right-4 z-50 mx-auto max-w-[calc(28rem-2rem)] rounded-[2rem] border border-white/60 bg-white/70 px-2 py-2 backdrop-blur-xl shadow-[0_8px_32px_-8px_rgba(253,164,175,0.4)]">
+<nav class="fixed bottom-6 left-4 right-4 z-50 mx-auto max-w-[calc(28rem-2rem)] rounded-[2rem] border border-white/60 bg-white/70 px-2 py-2 backdrop-blur-xl shadow-[0_8px_32px_-8px_rgba(253,164,175,0.4)] transition-all duration-500 ease-in-out {uiStore.isNavHidden ? 'translate-y-[150%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}">
     <div class="flex items-center justify-between px-1">
         {#each navItems as item (item.path)}
             <a 
@@ -19,7 +20,6 @@
                 class="relative flex flex-col items-center justify-center p-2 transition-all duration-300 ease-out active:scale-90 {item.isSpecial ? '-mt-10' : 'hover:-translate-y-1'}"
             >
                 {#if item.isSpecial}
-                    <!-- Signature Touch Button (Heart) -->
                     <div class="group flex h-[60px] w-[60px] items-center justify-center rounded-full bg-gradient-to-tr from-[#FDA4AF] to-[#F8B4C8] text-white shadow-[0_10px_25px_-5px_rgba(248,180,200,0.8)] ring-[6px] ring-[#FFF7ED] transition-transform hover:scale-105">
                         <svg class="h-8 w-8 transition-transform group-active:scale-75" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
@@ -39,7 +39,6 @@
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width={isActive ? "3" : "2.5"} d="M4 6h16M4 12h16M4 18h16"/></svg>
                         {/if}
                     </div>
-                    <!-- Indicator dot if active (Super subtle) -->
                     {#if isActive}
                         <div class="absolute -bottom-1 h-1 w-1 rounded-full bg-[#FDA4AF]"></div>
                     {/if}
@@ -50,8 +49,5 @@
 </nav>
 
 <style>
-    /* Agar font handwritten bisa dipakai via utility class tailwind jika diinject di style global, tapi kita define inline class untuk aman */
-    :global(.font-handwritten) {
-        font-family: 'Caveat', cursive;
-    }
+    :global(.font-handwritten) { font-family: 'Caveat', cursive; }
 </style>
