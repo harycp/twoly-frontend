@@ -1,10 +1,10 @@
 <script lang="ts">
-    import type { HTMLInputAttributes } from 'svelte/elements';
+    import type { HTMLTextareaAttributes } from 'svelte/elements';
 
-    interface Props extends HTMLInputAttributes {
+    interface Props extends HTMLTextareaAttributes {
         label?: string;
         error?: string;
-        value?: string | number;
+        value?: string;
     }
 
     let {
@@ -25,12 +25,12 @@
     {/if}
     
     <div class="relative">
-        <input
+        <textarea
             {id}
             bind:value
-            class="h-14 w-full rounded-2xl border border-white/60 bg-white/40 backdrop-blur-xl px-5 text-base font-semibold text-gray-900 transition-all duration-300 placeholder:text-gray-400 focus:border-[#FDA4AF] focus:bg-white/70 focus:outline-none focus:ring-4 focus:ring-[#FDA4AF]/15 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.03)] disabled:opacity-50 {error ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20 bg-red-50/50' : ''}"
+            class="w-full rounded-[24px] border border-white/60 bg-white/40 backdrop-blur-xl p-5 text-base font-semibold text-gray-900 transition-all duration-300 placeholder:text-gray-400 focus:border-[#FDA4AF] focus:bg-white/70 focus:outline-none focus:ring-4 focus:ring-[#FDA4AF]/15 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.03)] disabled:opacity-50 resize-none {error ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20 bg-red-50/50' : ''}"
             {...rest}
-        />
+        ></textarea>
     </div>
     
     {#if error}

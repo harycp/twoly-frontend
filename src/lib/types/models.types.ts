@@ -13,6 +13,12 @@ export interface Memory {
     created_at: string;
 }
 
+export interface ChecklistItem {
+    id: string;
+    item: string;
+    is_checked: boolean;
+}
+
 export interface DatePlan {
     id: string;
     couple_id: string;
@@ -24,5 +30,6 @@ export interface DatePlan {
     latitude?: number;
     longitude?: number;
     status: 'planned' | 'ongoing' | 'completed' | 'cancelled';
+    checklists: ChecklistItem[];
     created_at: string;
 }
