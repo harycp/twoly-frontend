@@ -17,12 +17,14 @@
     import LocationMapPreview from '$lib/components/common/LocationMapPreview.svelte';
     import PhotoViewer from '$lib/components/common/PhotoViewer.svelte';
     
+    // Impor Komponen Form & Alert untuk Mode Edit
     import Input from '$lib/components/common/Input.svelte';
     import Textarea from '$lib/components/common/Textarea.svelte';
     import LocationPicker from '$lib/components/common/LocationPicker.svelte';
     import TagsInput from '$lib/components/common/TagsInput.svelte';
     import AlertDialog from '$lib/components/common/AlertDialog.svelte';
     import DeleteButton from '$lib/components/common/DeleteButton.svelte';
+    import DateTimePicker from '$lib/components/common/DateTimePicker.svelte'; // <-- Import ini
 
     const memoryId = page.params.id as string;
     const queryClient = useQueryClient();
@@ -30,15 +32,19 @@
     let isUploading = $state(false);
     let fileInput: HTMLInputElement;
 
+    // --- STATES UNTUK MODE EDIT & DELETE ---
     let isEditing = $state(false);
     let isSaving = $state(false);
     let photoDeletingId = $state<string | null>(null);
 
+    // State Alert Umum
     let alertState = $state({ isOpen: false, title: '', message: '' });
 
+    // State Alert Hapus Foto Spesifik
     let photoToDelete = $state<string | null>(null);
     let isPhotoDeleteDialogOpen = $state(false);
 
+    // Nilai form edit
     let editTitle = $state('');
     let editMemoryDate = $state('');
     let editDescription = $state('');
@@ -56,6 +62,7 @@
         { label: 'Chill', value: 'chill' }
     ];
 
+    // Viewer States
     let isViewerOpen = $state(false);
     let activePhotoIndex = $state(0);
 
@@ -90,9 +97,11 @@
         return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
     };
 
+    // --- FUNGSI MULAI EDIT ---
     function startEditing() {
         if (!memory) return;
         editTitle = memory.title;
+        // Ambil hanya YYYY-MM-DD
         editMemoryDate = memory.memory_date.split('T')[0];
         editDescription = memory.description || '';
         editMood = memory.mood || '';
@@ -103,6 +112,7 @@
         isEditing = true;
     }
 
+    // --- FUNGSI SIMPAN EDIT (UPDATE) ---
     async function handleSaveEdit(e: SubmitEvent) {
         e.preventDefault();
         isSaving = true;
@@ -118,6 +128,7 @@
                 tags: editTags
             });
             
+            // Invalidate cache global
             queryClient.invalidateQueries({ queryKey: ['memory', memoryId] });
             queryClient.invalidateQueries({ queryKey: ['memories'] });
             queryClient.invalidateQueries({ queryKey: ['couple-gallery'] });
@@ -132,6 +143,7 @@
         }
     }
 
+    // --- FUNGSI HAPUS MEMORI (DELETE) ---
     async function handleDeleteMemory() {
         try {
             await memoryService.deleteMemory(memoryId);
@@ -145,6 +157,7 @@
         }
     }
 
+    // --- FUNGSI HAPUS FOTO SPESIFIK ---
     function promptDeletePhoto(photoId: string) {
         photoToDelete = photoId;
         isPhotoDeleteDialogOpen = true;
@@ -167,6 +180,7 @@
         }
     }
 
+    // --- FUNGSI UPLOAD FOTO ---
     async function handleFileSelect(event: Event) {
         const input = event.target as HTMLInputElement;
         if (!input.files || input.files.length === 0) return;
@@ -186,6 +200,7 @@
     }
 
     function openPhotoViewer(index: number) {
+        // Jangan buka viewer jika sedang mode edit
         if (isEditing) return; 
         activePhotoIndex = index;
         isViewerOpen = true;
@@ -193,6 +208,7 @@
 </script>
 
 <MobileShell>
+    <!-- HEADER PINTAR -->
     <PageHeader 
         title={isEditing ? 'Edit Memory' : memory ? memory.title : 'Loading...'} 
         subtitle={isEditing ? '' : memory ? formatDateClean(memory.memory_date.toString()) : ''} 
@@ -213,11 +229,13 @@
 
     <main class="px-6 pt-6 pb-32 space-y-10">
         
+        <!-- BLOK MODE EDIT -->
         {#if isEditing}
             <form onsubmit={handleSaveEdit} class="space-y-6">
                 <Input label="Title" type="text" placeholder="e.g. Our First Trip" bind:value={editTitle} required />
                 
-                <Input label="Date" type="date" bind:value={editMemoryDate} required />
+                <!-- MENGGUNAKAN KOMPONEN BARU -->
+                <DateTimePicker label="Date" type="date" bind:value={editMemoryDate} required />
                 
                 <LocationPicker 
                     bind:locationName={editLocationName} 
@@ -255,6 +273,7 @@
                 </div>
             </form>
 
+        <!-- BLOK MODE NORMAL (DETAIL) -->
         {:else}
             <section class="relative">
                 <div class="absolute -right-10 top-0 h-32 w-32 rounded-full bg-[#FED7AA] opacity-20 blur-3xl pointer-events-none"></div>
@@ -311,6 +330,7 @@
             </section>
         {/if}
 
+        <!-- GALLERY SECTION (Ditampilkan baik di Edit maupun Normal, dengan logika berbeda) -->
         <section>
             <div class="flex items-center justify-between mb-6">
                 <div class="flex flex-col">

@@ -3,6 +3,7 @@
     import { goto } from '$app/navigation';
     import { resolve } from '$app/paths';
     import { useQueryClient } from '@tanstack/svelte-query';
+    
     import { authStore } from '$lib/stores/auth.store.svelte';
     import { coupleStore } from '$lib/stores/couple.store.svelte';
     import { datePlanService } from '$lib/services/datePlan.service';
@@ -11,28 +12,40 @@
     import PageHeader from '$lib/components/layout/PageHeader.svelte';
     import Input from '$lib/components/common/Input.svelte';
     import Textarea from '$lib/components/common/Textarea.svelte';
-    import Button from '$lib/components/common/Button.svelte';
     import LocationPicker from '$lib/components/common/LocationPicker.svelte';
-    import TagsInput from '$lib/components/common/TagsInput.svelte';
+    import Button from '$lib/components/common/Button.svelte';
+    import DateTimePicker from '$lib/components/common/DateTimePicker.svelte'; // <-- Komponen baru
+
+    let title = $state('');
+    let planDate = $state('');
+    let locationName = $state('');
+    let latitude = $state<number | undefined>(undefined);
+    let longitude = $state<number | undefined>(undefined);
+    let notes = $state('');
+    let checklists = $state<string[]>([]);
+    let newChecklist = $state('');
+
+    let isLoading = $state(false);
+    let errorMessage = $state('');
+
+    const queryClient = useQueryClient();
 
     onMount(() => {
         if (!authStore.isAuthenticated) goto(resolve('/login' as any));
         else if (!coupleStore.isActive) goto(resolve('/join-couple' as any));
     });
 
-    let title = $state('');
-    let plan_date = $state(''); 
-    let notes = $state('');
-    
-    let location_name = $state('');
-    let latitude = $state<number | undefined>(undefined);
-    let longitude = $state<number | undefined>(undefined);
-    let checklists = $state<string[]>([]);
-    
-    let isLoading = $state(false);
-    let errorMessage = $state('');
+    function addChecklist(e: Event) {
+        e.preventDefault();
+        if (newChecklist.trim()) {
+            checklists = [...checklists, newChecklist.trim()];
+            newChecklist = '';
+        }
+    }
 
-    const queryClient = useQueryClient();
+    function removeChecklist(index: number) {
+        checklists = checklists.filter((_, i) => i !== index);
+    }
 
     async function handleSubmit(event: SubmitEvent) {
         event.preventDefault();
@@ -40,26 +53,24 @@
         errorMessage = '';
 
         try {
-            if (!plan_date) throw new Error("Please select date and time.");
-
-            const isoDate = new Date(plan_date).toISOString();
-
+            const isoDate = new Date(planDate).toISOString();
             await datePlanService.createDatePlan({ 
                 title, 
                 plan_date: isoDate, 
-                location_name, 
+                location_name: locationName, 
                 latitude,
                 longitude,
                 notes, 
                 checklists 
             });
             
+            // Invalidate cache global agar list plans dan kalender langsung update
             queryClient.invalidateQueries({ queryKey: ['date-plans'] });
             queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
             
             await goto(resolve('/date-plans' as any));
         } catch (error: unknown) {
-            errorMessage = error instanceof Error ? error.message : 'Failed to save date plan.';
+            errorMessage = error instanceof Error ? error.message : 'Failed to create date plan.';
         } finally {
             isLoading = false;
         }
@@ -67,11 +78,11 @@
 </script>
 
 <MobileShell>
-    <PageHeader title="Plan a Date" backUrl="/date-plans" />
+    <PageHeader title="New Plan" subtitle="Design your next memories" backUrl="/date-plans" />
 
     <main class="px-6 pt-6 pb-32">
         {#if errorMessage}
-            <div class="mb-6 rounded-2xl bg-red-50/80 backdrop-blur-md p-4 text-sm font-semibold text-red-600 border border-red-100">
+            <div class="mb-6 rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-600 border border-red-100">
                 {errorMessage}
             </div>
         {/if}
@@ -79,38 +90,56 @@
         <form onsubmit={handleSubmit} class="space-y-6">
             <Input label="Date Title" type="text" placeholder="e.g. Anniversary Dinner" bind:value={title} required />
             
-            <Input label="When?" type="datetime-local" bind:value={plan_date} required />
+            <!-- MENGGUNAKAN DATETIME PICKER CANGGIH -->
+            <DateTimePicker label="When?" type="datetime-local" bind:value={planDate} required />
             
-            <!-- LOCATION PICKER -->
+            <!-- Smart Location Picker -->
             <LocationPicker 
-                bind:locationName={location_name} 
+                bind:locationName={locationName} 
                 bind:latitude={latitude} 
                 bind:longitude={longitude} 
             />
 
             <Textarea 
                 label="Notes / Ideas" 
-                id="notes"
                 bind:value={notes} 
                 rows={3} 
                 placeholder="Any surprise plans or dress code?"
             />
 
-            <!-- MENGGUNAKAN TAGS INPUT UNTUK CHECKLIST (karena logic-nya identik: string array) -->
-            <TagsInput 
-                label="Checklists"
-                bind:tags={checklists} 
-            />
+            <div class="space-y-2 pt-2 border-t border-white">
+                <label class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">Initial Checklist</label>
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <Input 
+                            type="text" 
+                            placeholder="Add item..." 
+                            bind:value={newChecklist} 
+                            onkeydown={(e) => e.key === 'Enter' && addChecklist(e)}
+                        />
+                    </div>
+                    <Button type="button" variant="secondary" class="shrink-0 !px-4 shadow-sm" onclick={addChecklist}>
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    </Button>
+                </div>
+                
+                {#if checklists.length > 0}
+                    <ul class="mt-4 space-y-2">
+                        {#each checklists as item, index (index)}
+                            <li class="flex items-center justify-between rounded-xl bg-white/40 backdrop-blur-xl border border-white/60 p-3 shadow-sm transition-all hover:bg-white/60">
+                                <span class="text-sm font-bold text-gray-700">{item}</span>
+                                <button type="button" onclick={() => removeChecklist(index)} class="text-gray-400 hover:text-red-500 transition-colors">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </li>
+                        {/each}
+                    </ul>
+                {/if}
+            </div>
 
-            <div class="pt-6">
-                <Button type="submit" class="w-full" {isLoading}>Create Date Plan</Button>
+            <div class="pt-6 border-t border-white">
+                <Button type="submit" class="w-full shadow-lg" {isLoading}>Create Date Plan</Button>
             </div>
         </form>
     </main>
 </MobileShell>
-
-<style>
-    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-        background: transparent; bottom: 0; color: transparent; cursor: pointer; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
-    }
-</style>

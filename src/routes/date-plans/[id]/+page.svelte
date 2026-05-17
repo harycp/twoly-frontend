@@ -17,10 +17,12 @@
     import Button from '$lib/components/common/Button.svelte';
     import LocationMapPreview from '$lib/components/common/LocationMapPreview.svelte';
     
+    // Impor komponen untuk Form Edit & Reusable Dialog
     import Textarea from '$lib/components/common/Textarea.svelte';
     import LocationPicker from '$lib/components/common/LocationPicker.svelte';
     import AlertDialog from '$lib/components/common/AlertDialog.svelte';
     import DeleteButton from '$lib/components/common/DeleteButton.svelte';
+    import DateTimePicker from '$lib/components/common/DateTimePicker.svelte'; // <-- Import ini
 
     const planId = page.params.id as string;
     const queryClient = useQueryClient();
@@ -29,11 +31,14 @@
     let isAdding = $state(false);
     let isConverting = $state(false);
 
+    // --- STATES UNTUK MODE EDIT & DELETE ---
     let isEditing = $state(false);
     let isSaving = $state(false);
     
+    // State Alert Umum
     let alertState = $state({ isOpen: false, title: '', message: '' });
     
+    // Nilai form edit
     let editTitle = $state('');
     let editPlanDate = $state('');
     let editLocationName = $state('');
@@ -57,10 +62,12 @@
         return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
 
+    // --- FUNGSI MASUK MODE EDIT ---
     function startEditing() {
         if (!plan) return;
         editTitle = plan.title;
         
+        // Sesuaikan tanggal UTC dari server ke waktu lokal untuk input datetime-local
         const d = new Date(plan.plan_date);
         d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
         editPlanDate = d.toISOString().slice(0, 16);
@@ -72,6 +79,7 @@
         isEditing = true;
     }
 
+    // --- FUNGSI SIMPAN EDIT (UPDATE) ---
     async function handleSaveEdit(e: SubmitEvent) {
         e.preventDefault();
         isSaving = true;
@@ -98,6 +106,7 @@
         }
     }
 
+    // --- FUNGSI HAPUS (DELETE) - Tanpa native confirm() ---
     async function handleDelete() {
         try {
             await datePlanService.deleteDatePlan(planId);
@@ -110,6 +119,7 @@
         }
     }
 
+    // --- CHECKLIST HANDLERS ---
     async function handleAddChecklist(e: SubmitEvent) {
         e.preventDefault();
         if (!newItemText.trim()) return;
@@ -144,6 +154,7 @@
         }
     }
 
+    // --- ACTION HANDLERS ---
     async function handleMarkAsCompleted() {
         try {
             await datePlanService.updateDatePlanStatus(planId, { status: 'completed' });
@@ -173,6 +184,7 @@
 </script>
 
 <MobileShell>
+    <!-- HEADER PINTAR (Berubah Sesuai State isEditing) -->
     <PageHeader 
         title={isEditing ? 'Edit Plan' : plan ? plan.title : 'Loading...'} 
         subtitle={isEditing ? '' : plan ? 'Date Details' : ''} 
@@ -192,12 +204,16 @@
     </PageHeader>
 
     <main class="px-6 pt-6 pb-32 space-y-10">
+        
+        <!-- BLOK MODE EDIT -->
         {#if isEditing}
             <form onsubmit={handleSaveEdit} class="space-y-6">
                 <Input label="Date Title" type="text" placeholder="e.g. Anniversary Dinner" bind:value={editTitle} required />
                 
-                <Input label="When?" type="datetime-local" bind:value={editPlanDate} required />
+                <!-- MENGGUNAKAN KOMPONEN BARU -->
+                <DateTimePicker label="When?" type="datetime-local" bind:value={editPlanDate} required />
                 
+                <!-- Smart Location Picker di dalam Edit Form -->
                 <LocationPicker 
                     bind:locationName={editLocationName} 
                     bind:latitude={editLatitude} 
@@ -216,7 +232,10 @@
                     <Button type="submit" class="w-full" isLoading={isSaving}>Save Changes</Button>
                 </div>
             </form>
+
+        <!-- BLOK MODE NORMAL (DETAIL) -->
         {:else}
+            <!-- INFO SECTION -->
             <section class="relative">
                 <div class="absolute -right-10 top-0 h-32 w-32 rounded-full bg-[#DDD6FE] opacity-20 blur-3xl pointer-events-none"></div>
                 
@@ -251,6 +270,7 @@
                             {/if}
                         </div>
 
+                        <!-- MENGGUNAKAN MAP PREVIEW INTERAKTIF -->
                         {#if plan.latitude && plan.longitude}
                             <div class="mb-6">
                                 <LocationMapPreview 
@@ -271,6 +291,7 @@
                 {/if}
             </section>
 
+            <!-- CHECKLIST SECTION -->
             <section>
                 <div class="mb-5">
                     <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">Checklist</h2>
@@ -301,6 +322,7 @@
                         {/if}
                     </div>
 
+                    <!-- ADD CHECKLIST ITEM FORM -->
                     {#if plan.status !== 'completed' && plan.status !== 'cancelled'}
                         <form onsubmit={handleAddChecklist} class="flex items-center gap-3">
                             <div class="flex-1">
@@ -321,6 +343,7 @@
                 {/if}
             </section>
 
+            <!-- ACTION BUTTONS (DILENGKAPI TOMBOL DELETE & NOTES) -->
             {#if plan}
                 <section class="pt-6 border-t border-gray-200/50 space-y-3">
                     {#if plan.status !== 'completed' && plan.status !== 'cancelled'}
@@ -335,6 +358,7 @@
                         </Button>
                     {/if}
 
+                    <!-- MENGGUNAKAN REUSABLE DELETE COMPONENT -->
                     <DeleteButton 
                         label="Delete Plan Entirely"
                         dialogTitle="Delete Date Plan"
@@ -342,12 +366,14 @@
                         onDelete={handleDelete}
                     />
                     
+                    <!-- NOTE PERINGATAN KONSISTEN SEPERTI DI MEMORIES -->
                     <p class="text-center text-[11px] font-bold text-gray-400 mt-3 px-4">
                         Danger zone: Deleting this plan will also wipe out all its checklists.
                     </p>
                 </section>
             {/if}
         {/if}
+
     </main>
 </MobileShell>
 
