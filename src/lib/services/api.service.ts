@@ -23,11 +23,13 @@ function createHeaders(customHeaders?: HeadersInit, body?: BodyInit | object | n
 		headers.set('Content-Type', 'application/json');
 	}
 
+	headers.set('Accept', 'application/json');
+
 	return headers;
 }
 
-function createBody(body?: BodyInit | object | null): BodyInit | null | undefined {
-	if (!body) return null;
+function createBody(body?: BodyInit | object | null): BodyInit | undefined {
+	if (!body) return undefined;
 
 	if (
 		body instanceof FormData ||
@@ -53,34 +55,65 @@ function createUrl(endpoint: string, params?: QueryParams): string {
 	return url.toString();
 }
 
+function getAccessToken(): string | null {
+	if (!browser) return null;
+
+	return (
+		localStorage.getItem('access_token') ||
+		localStorage.getItem('token') ||
+		localStorage.getItem('auth_token')
+	);
+}
+
 export const apiService = {
 	async request<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-		const { params, requiresAuth = true, headers: customHeaders, body, ...customConfig } = options;
+		const {
+			params,
+			requiresAuth = true,
+			headers: customHeaders,
+			body,
+			...customConfig
+		} = options;
 
 		const headers = createHeaders(customHeaders, body);
 
-		if (requiresAuth && browser) {
-			const token = localStorage.getItem('access_token');
+		if (requiresAuth) {
+			const token = getAccessToken();
 
 			if (token) {
 				headers.set('Authorization', `Bearer ${token}`);
+			} else if (browser) {
+				console.warn(`[API Warning] No access token found for protected endpoint: ${endpoint}`);
 			}
 		}
 
 		const config: RequestInit = {
 			...customConfig,
 			headers,
-			body: createBody(body)
+			credentials: 'include'
 		};
+
+		const requestBody = createBody(body);
+
+		if (requestBody !== undefined) {
+			config.body = requestBody;
+		}
 
 		const url = createUrl(endpoint, params);
 
 		try {
 			const response = await fetch(url, config);
-			const json = (await response.json()) as ApiResponse<T>;
+
+			let json: ApiResponse<T> = {};
+
+			const contentType = response.headers.get('content-type');
+
+			if (contentType?.includes('application/json')) {
+				json = (await response.json()) as ApiResponse<T>;
+			}
 
 			if (!response.ok) {
-				throw new Error(json.message || 'Something went wrong on the server');
+				throw new Error(json.message || `Request failed with status ${response.status}`);
 			}
 
 			return json.data as T;
