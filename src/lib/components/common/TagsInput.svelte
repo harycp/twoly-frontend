@@ -7,6 +7,7 @@
     let { tags = $bindable([]), label = "Tags" }: Props = $props();
     let currentTag = $state('');
     let inputRef = $state<HTMLInputElement | null>(null);
+    const inputId = `tags-input-${crypto.randomUUID()}`;
 
     function handleKeydown(event: KeyboardEvent) {
         if (event.key === 'Enter' || event.key === ',') {
@@ -35,7 +36,7 @@
 
 <div class="flex flex-col gap-2 w-full">
     {#if label}
-        <label class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">
+        <label for={inputId} class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">
             {label}
         </label>
     {/if}
@@ -67,6 +68,7 @@
 
         <!-- Input Ketikan Seamless (Tanpa Border) -->
         <input
+            id={inputId}
             bind:this={inputRef}
             type="text"
             placeholder={tags.length === 0 ? "Type and press enter..." : "Add more..."}

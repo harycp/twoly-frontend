@@ -22,7 +22,7 @@
         try {
             await authService.register({ name, username, email, password });
             await authService.login({ email_or_username: email, password });
-            await goto(resolve('/join-couple' as any));
+            await goto(resolve('/join-couple'));
         } catch (error: unknown) {
             errorMessage = error instanceof Error ? error.message : 'Failed to register. Please try again.';
         } finally {
@@ -63,7 +63,7 @@
 
         <div class="mt-8 text-center text-sm font-medium text-gray-500">
             Already have an account?
-            <a href={resolve('/login' as any)} class="font-extrabold text-[#FDA4AF] hover:text-[#F8B4C8] transition-colors">
+            <a href={resolve('/login')} class="font-extrabold text-[#FDA4AF] hover:text-[#F8B4C8] transition-colors">
                 Log in here
             </a>
         </div>

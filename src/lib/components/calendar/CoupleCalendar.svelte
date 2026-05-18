@@ -9,7 +9,7 @@
         onChangeMonth: (newDate: Date) => void;
     }
 
-    let { events, selectedDate, currentMonthDate, onSelectDate, onChangeMonth }: Props = $props();
+    let { events, selectedDate = $bindable(), currentMonthDate = $bindable(), onSelectDate, onChangeMonth }: Props = $props();
 
     const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -63,10 +63,10 @@
             {monthNames[currentMonthDate.getMonth()]} <span class="text-gray-400 font-bold">{currentMonthDate.getFullYear()}</span>
         </h2>
         <div class="flex gap-2">
-            <button onclick={prevMonth} class="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm border border-gray-100 text-gray-600 hover:bg-gray-50 active:scale-90 transition-all">
+            <button onclick={prevMonth} aria-label="Previous month" class="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm border border-gray-100 text-gray-600 hover:bg-gray-50 active:scale-90 transition-all">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
             </button>
-            <button onclick={nextMonth} class="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm border border-gray-100 text-gray-600 hover:bg-gray-50 active:scale-90 transition-all">
+            <button onclick={nextMonth} aria-label="Next month" class="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm border border-gray-100 text-gray-600 hover:bg-gray-50 active:scale-90 transition-all">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
             </button>
         </div>

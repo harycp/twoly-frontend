@@ -8,9 +8,15 @@
 
     let { plan }: Props = $props();
 
-    const date = new Date(plan.plan_date);
-    const monthStr = date.toLocaleDateString('en-GB', { month: 'short' });
-    const dateNum = date.getDate();
+    const getDateInfo = (planDate: string) => {
+        const date = new Date(planDate);
+        return {
+            monthStr: date.toLocaleDateString('en-GB', { month: 'short' }),
+            dateNum: date.getDate()
+        };
+    };
+
+    let dateInfo = $derived(getDateInfo(plan.plan_date));
 
     const statusColors: Record<string, string> = {
         planned: 'bg-[#FED7AA]/30 text-[#EA580C] border-[#FED7AA]/50',
@@ -20,11 +26,11 @@
     };
 </script>
 
-<a href={resolve(`/date-plans/${plan.id}` as any)} class="flex items-center gap-5 rounded-[32px] bg-white/40 backdrop-blur-xl p-4 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.03)] border border-white/60 transition-all duration-300 ease-out active:scale-95 group hover:bg-white/60">
+<a href={resolve('/date-plans/[id]', { id: plan.id })} class="flex items-center gap-5 rounded-[32px] bg-white/40 backdrop-blur-xl p-4 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.03)] border border-white/60 transition-all duration-300 ease-out active:scale-95 group hover:bg-white/60">
     <!-- Calendar Box -->
     <div class="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-[20px] bg-white/60 text-gray-800 shadow-sm border border-white transition-colors duration-300 group-hover:bg-[#FED7AA]/20 group-hover:text-[#EA580C]">
-        <span class="text-[10px] font-extrabold uppercase tracking-widest opacity-50">{monthStr}</span>
-        <span class="text-2xl font-black leading-none mt-0.5">{dateNum}</span>
+        <span class="text-[10px] font-extrabold uppercase tracking-widest opacity-50">{dateInfo.monthStr}</span>
+        <span class="text-2xl font-black leading-none mt-0.5">{dateInfo.dateNum}</span>
     </div>
     
     <!-- Info -->

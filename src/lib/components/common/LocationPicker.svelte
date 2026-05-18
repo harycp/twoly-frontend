@@ -1,6 +1,36 @@
 <script lang="ts">
     import { browser } from '$app/environment';
 
+    type LatLngTuple = [number, number];
+
+    type LeafletClickEvent = {
+        latlng: { lat: number; lng: number };
+    };
+
+    type LeafletDragEndEvent = {
+        target: { getLatLng: () => { lat: number; lng: number } };
+    };
+
+    type LeafletMarker = {
+        addTo: (map: LeafletMap) => LeafletMarker;
+        setLatLng: (latlng: LatLngTuple) => LeafletMarker;
+        on: (event: 'dragend', handler: (event: LeafletDragEndEvent) => void) => void;
+    };
+
+    type LeafletMap = {
+        setView: (latlng: LatLngTuple, zoom: number) => LeafletMap;
+        remove: () => void;
+        on: (event: 'click', handler: (event: LeafletClickEvent) => void) => void;
+    };
+
+    type LeafletNamespace = {
+        map: (element: HTMLElement, options?: Record<string, unknown>) => LeafletMap;
+        tileLayer: (url: string, options?: Record<string, unknown>) => { addTo: (map: LeafletMap) => void };
+        marker: (latlng: LatLngTuple, options?: { draggable?: boolean }) => LeafletMarker;
+    };
+
+    type WindowWithLeaflet = Window & { L?: LeafletNamespace };
+
     interface Props {
         locationName?: string;
         latitude?: number | undefined;
@@ -18,8 +48,8 @@
     let locationError = $state('');
 
     let mapElement = $state<HTMLElement | null>(null);
-    let mapInstance: any = null;
-    let markerInstance: any = null;
+    let mapInstance: LeafletMap | null = null;
+    let markerInstance: LeafletMarker | null = null;
 
     async function searchLocation() {
         if (!locationName.trim()) return;
@@ -38,7 +68,7 @@
             } else {
                 locationError = "Location not found. Please pinpoint manually on the map.";
             }
-        } catch (err) {
+        } catch {
             locationError = "Search failed. Check your connection.";
         } finally {
             isSearching = false;
@@ -61,7 +91,7 @@
                 updateMapPosition(latitude, longitude, true);
                 isLocating = false;
             },
-            (error) => {
+            () => {
                 isLocating = false;
                 locationError = "Please allow location access to use this feature.";
             },
@@ -70,10 +100,12 @@
     }
 
     function updateMapPosition(lat: number, lng: number, recenter: boolean = false) {
-        if (!mapInstance || !(window as any).L) return;
-        
-        const L = (window as any).L;
-        const latlng = [lat, lng];
+        const leafletWindow = window as WindowWithLeaflet;
+
+        if (!mapInstance || !leafletWindow.L) return;
+
+        const L = leafletWindow.L;
+        const latlng: LatLngTuple = [lat, lng];
 
         if (recenter) mapInstance.setView(latlng, 15);
 
@@ -82,7 +114,7 @@
         } else {
             markerInstance = L.marker(latlng, { draggable: true }).addTo(mapInstance);
             
-            markerInstance.on('dragend', function(e: any) {
+            markerInstance.on('dragend', function(e) {
                 const pos = e.target.getLatLng();
                 latitude = parseFloat(pos.lat.toFixed(6));
                 longitude = parseFloat(pos.lng.toFixed(6));
@@ -91,12 +123,15 @@
     }
 
     $effect(() => {
-        if (browser && mapElement && (window as any).L && !mapInstance) {
-            const L = (window as any).L;
+        const leafletWindow = window as WindowWithLeaflet;
+
+        if (browser && mapElement && leafletWindow.L && !mapInstance) {
+            const L = leafletWindow.L;
             const initialLat = latitude || -6.200000; 
             const initialLng = longitude || 106.816666;
+            const initialLatLng: LatLngTuple = [initialLat, initialLng];
 
-            mapInstance = L.map(mapElement).setView([initialLat, initialLng], 13);
+            mapInstance = L.map(mapElement).setView(initialLatLng, 13);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
@@ -107,7 +142,7 @@
                 updateMapPosition(latitude, longitude, true);
             }
 
-            mapInstance.on('click', (e: any) => {
+            mapInstance.on('click', (e) => {
                 latitude = parseFloat(e.latlng.lat.toFixed(6));
                 longitude = parseFloat(e.latlng.lng.toFixed(6));
                 updateMapPosition(latitude, longitude, false);
@@ -130,7 +165,6 @@
 </svelte:head>
 
 <div class="flex flex-col gap-4 w-full">
-    <!-- SEARCH BAR PINTAR -->
     <div class="flex flex-col gap-2 w-full">
         <label for="locationSearch" class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">Search Location</label>
         <div class="relative flex items-center">
@@ -160,7 +194,6 @@
         {/if}
     </div>
 
-    <!-- PETA INTERAKTIF (Bisa digeser, di-drag, diklik) -->
     <div class="relative w-full rounded-[24px] border border-white/60 bg-white/40 backdrop-blur-xl p-2 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.02)]">
         <div class="h-56 w-full rounded-[18px] z-0 overflow-hidden relative" bind:this={mapElement}></div>
         

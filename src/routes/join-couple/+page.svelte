@@ -17,8 +17,10 @@
     onMount(async () => {
         try {
             await coupleService.getMyCouple();
-            if (coupleStore.isActive) await goto(resolve('/dashboard' as any));
-        } catch (error) { /* Abaikan */ }
+            if (coupleStore.isActive) await goto(resolve('/dashboard'));
+        } catch (error) {
+            void error;
+        }
     });
 
     async function handleJoin(event: SubmitEvent) {
@@ -31,7 +33,7 @@
         errorMessage = '';
         try {
             await coupleService.joinCouple({ invite_code: inviteCodeInput });
-            await goto(resolve('/dashboard' as any));
+            await goto(resolve('/dashboard'));
         } catch (error: unknown) {
             errorMessage = error instanceof Error ? error.message : 'Failed to join couple. Check your code.';
         } finally {
@@ -79,7 +81,7 @@
                     Share this code. The dashboard will unlock automatically once they join.
                 </p>
                 <Button variant="secondary" class="w-full" onclick={() => {
-                    coupleService.getMyCouple().then(() => { if (coupleStore.isActive) goto(resolve('/dashboard' as any)); });
+                    coupleService.getMyCouple().then(() => { if (coupleStore.isActive) goto(resolve('/dashboard')); });
                 }}>
                     Refresh Status
                 </Button>

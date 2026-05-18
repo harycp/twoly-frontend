@@ -3,6 +3,7 @@
     import { goto } from '$app/navigation';
     import { resolve } from '$app/paths';
     import { createQuery } from '@tanstack/svelte-query';
+    import { SvelteDate } from 'svelte/reactivity';
     
     import { authStore } from '$lib/stores/auth.store.svelte';
     import { coupleStore } from '$lib/stores/couple.store.svelte';
@@ -16,8 +17,8 @@
     import logo from '$lib/assets/logos/twoly.webp';
 
     onMount(() => {
-        if (!authStore.isAuthenticated) goto(resolve('/login' as any));
-        else if (!coupleStore.isActive) goto(resolve('/join-couple' as any));
+        if (!authStore.isAuthenticated) goto(resolve('/login'));
+        else if (!coupleStore.isActive) goto(resolve('/join-couple'));
     });
 
     let myId = $derived(authStore.user?.id);
@@ -28,10 +29,10 @@
         const startDateStr = coupleStore.data?.anniversary_date || coupleStore.data?.created_at;
         if (!startDateStr) return 0;
         
-        const startDate = new Date(startDateStr);
+        const startDate = new SvelteDate(startDateStr);
         startDate.setHours(0, 0, 0, 0); 
         
-        const today = new Date();
+        const today = new SvelteDate();
         today.setHours(0, 0, 0, 0);
         
         const diffTime = today.getTime() - startDate.getTime();
@@ -42,11 +43,11 @@
     let nextAnniversary = $derived.by(() => {
         if (!coupleStore.data?.anniversary_date) return null;
         
-        const today = new Date();
+        const today = new SvelteDate();
         today.setHours(0, 0, 0, 0);
         
-        const annivDate = new Date(coupleStore.data.anniversary_date);
-        let next = new Date(today.getFullYear(), annivDate.getMonth(), annivDate.getDate());
+        const annivDate = new SvelteDate(coupleStore.data.anniversary_date);
+        let next = new SvelteDate(today.getFullYear(), annivDate.getMonth(), annivDate.getDate());
         
         // Jika anniversary tahun ini sudah lewat, targetkan tahun depan
         if (next.getTime() < today.getTime()) {
@@ -81,7 +82,7 @@
     });
 
     const formatDateClean = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+        return new SvelteDate(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
     };
 </script>
 
@@ -111,7 +112,7 @@
     <main class="px-6 pb-28 space-y-5">
         
         <!-- WIDGET 1: Hero Love Streak -->
-        <div class="group relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#F8B4C8] to-[#FDA4AF] p-8 text-white shadow-[0_16px_40px_-12px_rgba(253,164,175,0.6)] transition-transform duration-500 ease-out hover:scale-[1.02] active:scale-95">
+        <div class="group relative overflow-hidden rounded-[36px] bg-linear-to-br from-[#F8B4C8] to-[#FDA4AF] p-8 text-white shadow-[0_16px_40px_-12px_rgba(253,164,175,0.6)] transition-transform duration-500 ease-out hover:scale-[1.02] active:scale-95">
             <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white opacity-20 blur-3xl"></div>
             <div class="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-[#DDD6FE] opacity-20 blur-3xl"></div>
             
@@ -134,7 +135,7 @@
         <!-- WIDGET ROW: Anniversary & Plans -->
         <div class="grid grid-cols-2 gap-5">
             {#if nextAnniversary !== null}
-            <div class="relative overflow-hidden rounded-[32px] bg-white p-6 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-gray-50/50 transition-transform duration-300 ease-out active:scale-95 flex flex-col justify-between aspect-square">
+            <div class="relative overflow-hidden rounded-4xl bg-white p-6 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-gray-50/50 transition-transform duration-300 ease-out active:scale-95 flex flex-col justify-between aspect-square">
                 <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-[20px] bg-[#DDD6FE]/30 text-[#8B5CF6] text-xl shadow-inner">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                 </div>
@@ -146,7 +147,7 @@
             </div>
             {/if}
 
-            <a href={resolve('/date-plans' as any)} class="relative overflow-hidden rounded-[32px] bg-white p-6 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-gray-50/50 transition-transform duration-300 ease-out active:scale-95 flex flex-col justify-between aspect-square">
+            <a href={resolve('/date-plans')} class="relative overflow-hidden rounded-4xl bg-white p-6 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-gray-50/50 transition-transform duration-300 ease-out active:scale-95 flex flex-col justify-between aspect-square">
                 <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-[20px] bg-[#FED7AA]/30 text-[#EA580C] text-xl shadow-inner">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 </div>
@@ -158,7 +159,7 @@
         </div>
 
         <!-- NEW WIDGET: Love Notes Banner -->
-        <a href={resolve('/love-notes' as any)} class="block group relative overflow-hidden rounded-[32px] bg-white p-6 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-gray-50/50 transition-transform duration-300 ease-out active:scale-95 flex items-center justify-between">
+        <a href={resolve('/love-notes')} class="group relative flex items-center justify-between overflow-hidden rounded-4xl bg-white p-6 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-gray-50/50 transition-transform duration-300 ease-out active:scale-95">
             <div class="flex items-center gap-4">
                 <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#F8B4C8]/20 text-[#FDA4AF] shadow-inner relative">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5M10 12l2.25 1.5M14 12l-2.25 1.5"/></svg>
@@ -187,19 +188,19 @@
                     <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">Camera Roll</h2>
                     <p class="text-sm font-medium text-gray-400 mt-0.5">Recent memories</p>
                 </div>
-                <a aria-label="See all memories" href={resolve('/memories' as any)} class="flex h-10 w-10 items-center justify-center rounded-[18px] bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-gray-900 transition-all active:scale-90">
+                <a aria-label="See all memories" href={resolve('/memories')} class="flex h-10 w-10 items-center justify-center rounded-[18px] bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-gray-900 transition-all active:scale-90">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
 
             {#if memoriesQuery.isPending}
                 <div class="flex gap-4 overflow-x-auto pb-8 pt-2 px-6 snap-x hide-scrollbar">
-                    <div class="animate-pulse shrink-0 w-64 aspect-[4/5] rounded-[32px] bg-white shadow-sm border border-gray-100"></div>
-                    <div class="animate-pulse shrink-0 w-64 aspect-[4/5] rounded-[32px] bg-white shadow-sm border border-gray-100"></div>
+                    <div class="animate-pulse shrink-0 w-64 aspect-4/5 rounded-4xl bg-white shadow-sm border border-gray-100"></div>
+                    <div class="animate-pulse shrink-0 w-64 aspect-4/5 rounded-4xl bg-white shadow-sm border border-gray-100"></div>
                 </div>
             {:else if recentMemories.length === 0}
-                <div class="mx-6 flex flex-col items-center justify-center rounded-[32px] bg-white shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-gray-50 py-12 px-6 text-center">
-                    <div class="h-16 w-16 mb-4 rounded-[24px] bg-gray-50 flex items-center justify-center text-gray-300">
+                <div class="mx-6 flex flex-col items-center justify-center rounded-4xl bg-white shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-gray-50 py-12 px-6 text-center">
+                    <div class="h-16 w-16 mb-4 rounded-3xl bg-gray-50 flex items-center justify-center text-gray-300">
                         <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
                     <p class="text-base font-bold text-gray-800">No moments yet</p>
@@ -208,12 +209,12 @@
             {:else}
                 <div class="flex gap-4 overflow-x-auto pb-8 pt-2 px-6 snap-x hide-scrollbar">
                     {#each recentMemories as memory, i (memory.id)}
-                        <a href={resolve(`/memories/${memory.id}` as any)} class="shrink-0 w-64 snap-center relative rounded-[32px] overflow-hidden aspect-[4/5] bg-gray-100 shadow-[0_16px_40px_-15px_rgba(0,0,0,0.08)] transition-transform duration-500 hover:-translate-y-1 active:scale-95 group">
+                        <a href={resolve('/memories/[id]', { id: memory.id })} class="shrink-0 w-64 snap-center relative rounded-4xl overflow-hidden aspect-4/5 bg-gray-100 shadow-[0_16px_40px_-15px_rgba(0,0,0,0.08)] transition-transform duration-500 hover:-translate-y-1 active:scale-95 group">
                             
                             <MemoryCover memoryId={memory.id} fallbackIndex={i} />
 
                             <!-- Cinematic Vignette -->
-                            <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100 z-20 pointer-events-none"></div>
+                            <div class="absolute inset-0 bg-linear-to-t from-gray-900/90 via-gray-900/20 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100 z-20 pointer-events-none"></div>
 
                             <!-- Content Overlay -->
                             <div class="absolute inset-0 p-6 flex flex-col justify-between z-30 pointer-events-none">

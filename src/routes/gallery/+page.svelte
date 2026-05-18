@@ -12,8 +12,8 @@
     import PhotoViewer from '$lib/components/common/PhotoViewer.svelte';
 
     onMount(() => {
-        if (!authStore.isAuthenticated) goto(resolve('/login' as any));
-        else if (!coupleStore.isActive) goto(resolve('/join-couple' as any));
+        if (!authStore.isAuthenticated) goto(resolve('/login'));
+        else if (!coupleStore.isActive) goto(resolve('/join-couple'));
     });
 
     const galleryQuery = createQuery(() => ({
@@ -74,6 +74,7 @@
 
     let isViewerOpen = $state(false);
     let activePhotoIndex = $state(0);
+    const viewModes: ViewMode[] = ['years', 'months', 'days', 'all'];
 
     let viewerPhotos = $derived(filteredPhotos.map(p => ({
         id: p.id,
@@ -103,20 +104,17 @@
 </script>
 
 <MobileShell>
-    <!-- CUSTOM STICKY HEADER (MASTERPIECE iOS STYLE) -->
     <header class="sticky top-0 z-40 bg-[#FFF7ED]/95 backdrop-blur-2xl border-b border-[#F8B4C8]/20 pt-10 pb-4 flex flex-col gap-4 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.03)] transition-all">
-        
-        <!-- Baris 1: Tombol Back & Judul Utama -->
+
         <div class="px-6 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <a aria-label="Back to timeline" href={resolve('/memories' as any)} class="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-[0_4px_15px_-5px_rgba(0,0,0,0.05)] border border-white/60 text-gray-900 transition-transform active:scale-90 hover:bg-gray-50">
+                <a aria-label="Back to timeline" href={resolve('/memories')} class="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-[0_4px_15px_-5px_rgba(0,0,0,0.05)] border border-white/60 text-gray-900 transition-transform active:scale-90 hover:bg-gray-50">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                 </a>
                 <h1 class="text-3xl font-black text-gray-900 tracking-tight leading-none">Gallery</h1>
             </div>
         </div>
 
-        <!-- Baris 2: Search Bar Premium -->
         <div class="px-6">
             <div class="relative flex items-center">
                 <input
@@ -131,13 +129,12 @@
             </div>
         </div>
 
-        <!-- Baris 3: Segmented Control (Filter) Pill-Style -->
         <div class="px-6">
             <div class="flex p-1.5 bg-white/40 backdrop-blur-xl rounded-[20px] border border-white/60 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.02)]">
-                {#each ['years', 'months', 'days', 'all'] as mode (mode)}
+                {#each viewModes as mode (mode)}
                     <button
                         type="button"
-                        onclick={() => currentMode = mode as ViewMode}
+                        onclick={() => currentMode = mode}
                         class="flex-1 py-2 text-[11px] font-black uppercase tracking-widest rounded-[14px] transition-all duration-300 {currentMode === mode ? 'bg-white text-[#FDA4AF] shadow-[0_2px_10px_-3px_rgba(0,0,0,0.06)] border border-gray-50' : 'text-gray-400 hover:text-gray-600'}"
                     >
                         {mode}
@@ -147,11 +144,10 @@
         </div>
     </header>
 
-    <!-- AREA KONTEN GALERI (SCROLL BEBAS - Tidak ada pembatas tinggi layar) -->
     <main class="min-h-screen pb-40">
         {#if galleryQuery.isPending}
             <div class="grid grid-cols-4 gap-[2px] pt-[2px]">
-                {#each Array(24) as _, idx (idx)}
+                {#each Array.from({ length: 24 }, (_, idx) => idx) as idx (idx)}
                     <div class="animate-pulse aspect-square bg-white/50 border border-gray-100"></div>
                 {/each}
             </div>
@@ -168,7 +164,6 @@
             </div>
             
         {:else}
-            <!-- LAYOUTS BERDASARKAN MODE -->
             {#if currentMode === 'years'}
                 <div class="space-y-10 pt-6 px-6">
                     {#each photosByYear as [year, photosList] (year)}
@@ -209,15 +204,14 @@
                         <div class="space-y-3">
                             <div class="flex items-end justify-between pl-3 pr-4">
                                 <h3 class="text-lg font-black text-gray-900 tracking-tight">{formatDayTitle(dateStr)}</h3>
-                                {#if photosList[0].memory_title}
+                                {#if photosList[0].memory.title}
                                     <span class="text-[11px] font-bold text-gray-400 truncate max-w-[40%] flex items-center gap-1">
                                         <svg class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        {photosList[0].memory_title}
+                                        {photosList[0].memory.title}
                                     </span>
                                 {/if}
                             </div>
                             
-                            <!-- Grid Hari Asimetris & Modern -->
                             <div class="grid grid-cols-4 gap-[2px]">
                                 {#each photosList as photo, i (photo.id)}
                                     {@const realIndex = filteredPhotos.findIndex(p => p.id === photo.id)}
@@ -234,7 +228,6 @@
                 </div>
 
             {:else}
-                <!-- MODE ALL: Kotak-kotak sangat rapat ala Camera Roll Asli (Gap 2px) -->
                 <div class="grid grid-cols-4 gap-[2px] pt-[2px]">
                     {#each filteredPhotos as photo, i (photo.id)}
                         <button 

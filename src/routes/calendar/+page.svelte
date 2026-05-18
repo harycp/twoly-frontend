@@ -13,8 +13,8 @@
     import CoupleCalendar from '$lib/components/calendar/CoupleCalendar.svelte';
 
     onMount(() => {
-        if (!authStore.isAuthenticated) goto(resolve('/login' as any));
-        else if (!coupleStore.isActive) goto(resolve('/join-couple' as any));
+        if (!authStore.isAuthenticated) goto(resolve('/login'));
+        else if (!coupleStore.isActive) goto(resolve('/join-couple'));
     });
 
     let selectedDate = $state(new Date());
@@ -52,14 +52,11 @@
 </script>
 
 <MobileShell>
-    <!-- Header Kalender -->
     <PageHeader title="Shared Calendar" subtitle="Timeline of our journey" backUrl="/dashboard" />
 
     <main class="px-6 pt-6 pb-32 space-y-8">
-        
-        <!-- KOMPONEN KALENDER HEAT MAP -->
+
         <section class="relative">
-            <!-- Glow background -->
             <div class="absolute -right-5 top-10 h-32 w-32 rounded-full bg-[#FED7AA] opacity-20 blur-3xl pointer-events-none"></div>
             
             <CoupleCalendar 
@@ -71,7 +68,6 @@
             />
         </section>
 
-        <!-- DAFTAR EVENT DI TANGGAL YANG DIPILIH -->
         <section>
             <div class="mb-4">
                 <h3 class="text-lg font-black text-gray-900 tracking-tight">
@@ -88,14 +84,18 @@
             {:else}
                 <div class="space-y-4">
                     {#each selectedDayEvents as ev (ev.id)}
-                        <!-- Card dinamis berdasarkan Tipe Event -->
                         <a 
-                            href={ev.event_type === 'memory' ? `/memories/${ev.reference_id}` : ev.event_type === 'date_plan' ? `/date-plans/${ev.reference_id}` : '#'}
+                            href={ev.reference_id
+                                ? ev.event_type === 'memory'
+                                    ? resolve('/memories/[id]', { id: ev.reference_id })
+                                    : ev.event_type === 'date_plan'
+                                        ? resolve('/date-plans/[id]', { id: ev.reference_id })
+                                        : '#'
+                                : '#'}
                             class="block relative overflow-hidden rounded-[28px] bg-white/60 backdrop-blur-xl p-5 shadow-sm border border-white transition-transform active:scale-95
                                 {ev.event_type === 'memory' ? 'hover:bg-[#F8B4C8]/10' : ev.event_type === 'date_plan' ? 'hover:bg-[#FED7AA]/10' : 'hover:bg-gray-50'}"
                         >
                             <div class="flex gap-4">
-                                <!-- Ikon Tipe Event -->
                                 <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] shadow-inner
                                     {ev.event_type === 'memory' ? 'bg-[#FDA4AF]/20 text-[#FDA4AF]' : 
                                      ev.event_type === 'date_plan' ? 'bg-[#FED7AA]/30 text-[#EA580C]' : 

@@ -1,6 +1,19 @@
 <script lang="ts">
     import { browser } from '$app/environment';
 
+    type LeafletMap = {
+        setView: (latlng: [number, number], zoom: number) => LeafletMap;
+        remove: () => void;
+    };
+
+    type LeafletNamespace = {
+        map: (element: HTMLElement, options?: Record<string, unknown>) => LeafletMap;
+        tileLayer: (url: string, options?: Record<string, unknown>) => { addTo: (map: LeafletMap) => void };
+        marker: (latlng: [number, number]) => { addTo: (map: LeafletMap) => void };
+    };
+
+    type WindowWithLeaflet = Window & { L?: LeafletNamespace };
+
     interface Props {
         latitude: number;
         longitude: number;
@@ -9,24 +22,27 @@
     let { latitude, longitude, locationName }: Props = $props();
 
     let mapElement = $state<HTMLElement | null>(null);
-    let mapInstance: any = null;
+    let mapInstance: LeafletMap | null = null;
 
     $effect(() => {
-        if (browser && mapElement && (window as any).L && !mapInstance) {
-            const L = (window as any).L;
+        const leafletWindow = window as WindowWithLeaflet;
+
+        if (browser && mapElement && leafletWindow.L && !mapInstance) {
+            const L = leafletWindow.L;
             mapInstance = L.map(mapElement, {
                 zoomControl: false,
                 dragging: false,
                 scrollWheelZoom: false,
                 doubleClickZoom: false
-            }).setView([latitude, longitude], 15);
+            });
+            mapInstance.setView([latitude, longitude], 15);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '© OpenStreetMap'
-            }).addTo(mapInstance);
+            }).addTo(mapInstance!);
             
-            L.marker([latitude, longitude]).addTo(mapInstance);
+            L.marker([latitude, longitude]).addTo(mapInstance!);
         }
 
         return () => {
@@ -44,10 +60,8 @@
 </svelte:head>
 
 <div class="relative mt-2 w-full rounded-[24px] overflow-hidden shadow-[0_4px_20px_-8px_rgba(0,0,0,0.06)] border border-white/60 bg-white/40 p-2 backdrop-blur-xl">
-    <!-- Map Container -->
     <div class="h-44 w-full rounded-[16px] z-0 overflow-hidden" bind:this={mapElement}></div>
-    
-    <!-- Info & Google Maps Button Overlay di bawah Peta -->
+
     <div class="mt-3 flex items-center justify-between px-2 pb-1">
         <div class="flex-1 truncate pr-4">
             <span class="text-[13px] font-bold text-gray-800 tracking-tight truncate block">

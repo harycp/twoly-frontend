@@ -11,8 +11,8 @@
     import MemoryCover from '$lib/components/memories/MemoryCover.svelte';
 
     onMount(() => {
-        if (!authStore.isAuthenticated) goto(resolve('/login' as any));
-        else if (!coupleStore.isActive) goto(resolve('/join-couple' as any));
+        if (!authStore.isAuthenticated) goto(resolve('/login'));
+        else if (!coupleStore.isActive) goto(resolve('/join-couple'));
     });
 
     const memoriesQuery = createQuery(() => ({
@@ -40,14 +40,14 @@
         <!-- Action Buttons: Album & New Memory -->
         <div class="flex items-center gap-3">
             <!-- Shared Gallery Album Button -->
-            <a aria-label="View album" href={resolve('/gallery' as any)} class="flex h-12 w-12 items-center justify-center rounded-full bg-white border border-gray-100 text-gray-500 shadow-sm transition-all duration-300 active:scale-90 hover:text-gray-900 hover:bg-gray-50">
+            <a aria-label="View album" href={resolve('/gallery')} class="flex h-12 w-12 items-center justify-center rounded-full bg-white border border-gray-100 text-gray-500 shadow-sm transition-all duration-300 active:scale-90 hover:text-gray-900 hover:bg-gray-50">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
             </a>
             
             <!-- Add Button: Sleek & Professional -->
-            <a aria-label="Add new memory" href={resolve('/memories/new' as any)} class="group flex h-12 w-12 items-center justify-center rounded-full bg-gray-900 text-white shadow-[0_8px_20px_-6px_rgba(0,0,0,0.3)] transition-all duration-300 active:scale-90 hover:bg-gray-800 hover:shadow-[0_10px_25px_-5px_rgba(0,0,0,0.4)]">
+            <a aria-label="Add new memory" href={resolve('/memories/new')} class="group flex h-12 w-12 items-center justify-center rounded-full bg-gray-900 text-white shadow-[0_8px_20px_-6px_rgba(0,0,0,0.3)] transition-all duration-300 active:scale-90 hover:bg-gray-800 hover:shadow-[0_10px_25px_-5px_rgba(0,0,0,0.4)]">
                 <svg class="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
             </a>
         </div>
@@ -82,7 +82,7 @@
             <div class="space-y-6">
                 {#each memories as memory, i (memory.id)}
                     <!-- MEMORY CARD -->
-                    <a href={resolve(`/memories/${memory.id}` as any)} class="block group relative overflow-hidden rounded-[36px] bg-white shadow-[0_12px_30px_-10px_rgba(0,0,0,0.06)] border border-gray-50/50 transition-all duration-500 ease-out active:scale-[0.98]">
+                    <a href={resolve('/memories/[id]', { id: memory.id })} class="block group relative overflow-hidden rounded-[36px] bg-white shadow-[0_12px_30px_-10px_rgba(0,0,0,0.06)] border border-gray-50/50 transition-all duration-500 ease-out active:scale-[0.98]">
                         
                         <!-- Image Area (Cinematic Aspect Ratio 4:5) -->
                         <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">

@@ -67,8 +67,8 @@
     let activePhotoIndex = $state(0);
 
     onMount(() => {
-        if (!authStore.isAuthenticated) goto(resolve('/login' as any));
-        else if (!coupleStore.isActive) goto(resolve('/join-couple' as any));
+        if (!authStore.isAuthenticated) goto(resolve('/login'));
+        else if (!coupleStore.isActive) goto(resolve('/join-couple'));
     });
 
     const memoryQuery = createQuery(() => ({
@@ -150,7 +150,7 @@
             queryClient.invalidateQueries({ queryKey: ['memories'] });
             queryClient.invalidateQueries({ queryKey: ['couple-gallery'] });
             queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-            await goto(resolve('/memories' as any));
+            await goto(resolve('/memories'));
         } catch (error) {
             console.error(error);
             alertState = { isOpen: true, title: 'Error', message: 'Failed to delete memory.' };
@@ -252,7 +252,7 @@
                 />
 
                 <div class="flex flex-col gap-2 w-full">
-                    <label class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">Vibe / Mood</label>
+                    <p class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">Vibe / Mood</p>
                     <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-4 pt-1 px-1 -mx-1">
                         {#each moods as m (m.value)}
                             <button 

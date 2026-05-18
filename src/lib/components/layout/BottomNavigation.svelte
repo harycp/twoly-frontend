@@ -9,17 +9,17 @@
         { name: 'Touch', path: '/touch', icon: 'heart', isSpecial: true },
         { name: 'Plans', path: '/date-plans', icon: 'calendar' },
         { name: 'More', path: '/settings', icon: 'menu' }
-    ];
+    ] as const;
 </script>
 
 <nav class="fixed bottom-6 left-4 right-4 z-50 mx-auto max-w-[calc(28rem-2rem)] rounded-[2rem] border border-white/60 bg-white/70 px-2 py-2 backdrop-blur-xl shadow-[0_8px_32px_-8px_rgba(253,164,175,0.4)] transition-all duration-500 ease-in-out {uiStore.isNavHidden ? 'translate-y-[150%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}">
     <div class="flex items-center justify-between px-1">
-        {#each navItems as item (item.path)}
+        {#each navItems as item, index (`${item.path}-${item.name}-${index}`)}
             <a 
-                href={resolve(item.path as any)} 
-                class="relative flex flex-col items-center justify-center p-2 transition-all duration-300 ease-out active:scale-90 {item.isSpecial ? '-mt-10' : 'hover:-translate-y-1'}"
+                href={item.path} 
+                class="relative flex flex-col items-center justify-center p-2 transition-all duration-300 ease-out active:scale-90 {('isSpecial' in item && item.isSpecial) ? '-mt-10' : 'hover:-translate-y-1'}"
             >
-                {#if item.isSpecial}
+                {#if 'isSpecial' in item && item.isSpecial}
                     <div class="group flex h-[60px] w-[60px] items-center justify-center rounded-full bg-gradient-to-tr from-[#FDA4AF] to-[#F8B4C8] text-white shadow-[0_10px_25px_-5px_rgba(248,180,200,0.8)] ring-[6px] ring-[#FFF7ED] transition-transform hover:scale-105">
                         <svg class="h-8 w-8 transition-transform group-active:scale-75" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>

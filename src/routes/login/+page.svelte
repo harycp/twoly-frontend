@@ -19,7 +19,7 @@
 
         try {
             await authService.login({ email_or_username: emailOrUsername, password });
-            await goto(resolve('/dashboard' as any));
+            await goto(resolve('/dashboard'));
         } catch (error: unknown) {
             errorMessage = error instanceof Error ? error.message : 'Failed to log in. Please check your credentials.';
         } finally {
@@ -71,7 +71,7 @@
 
         <div class="mt-8 text-center text-sm font-medium text-gray-500">
             Don't have an account?
-            <a href={resolve('/register' as any)} class="font-extrabold text-[#FDA4AF] hover:text-[#F8B4C8] transition-colors">
+            <a href={resolve('/register')} class="font-extrabold text-[#FDA4AF] hover:text-[#F8B4C8] transition-colors">
                 Create space
             </a>
         </div>

@@ -127,6 +127,7 @@
                     type="button"
                     onclick={() => isOpen = false}
                     class="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 backdrop-blur-md active:scale-90 transition-all"
+                    aria-label="Close viewer"
                 >
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
@@ -153,7 +154,7 @@
                     <!-- Tombol Memory Detail -->
                     {#if currentPhoto.memory_id}
                         <a 
-                            href={resolve(`/memories/${currentPhoto.memory_id}` as any)}
+                            href={resolve('/memories/[id]', { id: currentPhoto.memory_id })}
                             onclick={() => isOpen = false}
                             class="shrink-0 flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md text-white px-4 py-2 text-[11px] font-bold tracking-wide transition-all active:scale-95"
                         >
@@ -167,8 +168,8 @@
 
         <!-- DESKTOP ARROWS -->
         {#if showControls}
-            <button transition:fade type="button" onclick={(e) => { e.stopPropagation(); prev(); }} class="hidden md:flex absolute left-4 z-20 h-12 w-12 items-center justify-center rounded-full bg-black/40 text-white hover:bg-white/20 transition-all border border-white/10"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg></button>
-            <button transition:fade type="button" onclick={(e) => { e.stopPropagation(); next(); }} class="hidden md:flex absolute right-4 z-20 h-12 w-12 items-center justify-center rounded-full bg-black/40 text-white hover:bg-white/20 transition-all border border-white/10"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></button>
+            <button transition:fade type="button" onclick={(e) => { e.stopPropagation(); prev(); }} class="hidden md:flex absolute left-4 z-20 h-12 w-12 items-center justify-center rounded-full bg-black/40 text-white hover:bg-white/20 transition-all border border-white/10" aria-label="Previous photo"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg></button>
+            <button transition:fade type="button" onclick={(e) => { e.stopPropagation(); next(); }} class="hidden md:flex absolute right-4 z-20 h-12 w-12 items-center justify-center rounded-full bg-black/40 text-white hover:bg-white/20 transition-all border border-white/10" aria-label="Next photo"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></button>
         {/if}
     </div>
 {/if}

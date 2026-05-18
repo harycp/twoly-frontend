@@ -11,10 +11,9 @@
     import MobileShell from '$lib/components/layout/MobileShell.svelte';
     import PageHeader from '$lib/components/layout/PageHeader.svelte';
     import Textarea from '$lib/components/common/Textarea.svelte';
-    import Input from '$lib/components/common/Input.svelte';
     import Button from '$lib/components/common/Button.svelte';
     import Toggle from '$lib/components/common/Toggle.svelte';
-    import DateTimePicker from '$lib/components/common/DateTimePicker.svelte'; // <-- Import ini
+    import DateTimePicker from '$lib/components/common/DateTimePicker.svelte';
 
     const queryClient = useQueryClient();
 
@@ -26,8 +25,8 @@
     let errorMessage = $state('');
 
     onMount(() => {
-        if (!authStore.isAuthenticated) goto(resolve('/login' as any));
-        else if (!coupleStore.isActive) goto(resolve('/join-couple' as any));
+        if (!authStore.isAuthenticated) goto(resolve('/login'));
+        else if (!coupleStore.isActive) goto(resolve('/join-couple'));
     });
 
     async function handleSubmit(event: SubmitEvent) {
@@ -48,7 +47,7 @@
             });
             
             queryClient.invalidateQueries({ queryKey: ['love-notes'] });
-            await goto(resolve('/love-notes' as any));
+            await goto(resolve('/love-notes'));
         } catch (error: unknown) {
             errorMessage = error instanceof Error ? error.message : 'Failed to send love note.';
         } finally {

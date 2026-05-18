@@ -4,6 +4,7 @@
     import { resolve } from '$app/paths';
     import { page } from '$app/state';
     import { createQuery, useQueryClient } from '@tanstack/svelte-query';
+    import { SvelteDate } from 'svelte/reactivity';
     
     import { authStore } from '$lib/stores/auth.store.svelte';
     import { coupleStore } from '$lib/stores/couple.store.svelte';
@@ -47,8 +48,8 @@
     let editNotes = $state('');
 
     onMount(() => {
-        if (!authStore.isAuthenticated) goto(resolve('/login' as any));
-        else if (!coupleStore.isActive) goto(resolve('/join-couple' as any));
+        if (!authStore.isAuthenticated) goto(resolve('/login'));
+        else if (!coupleStore.isActive) goto(resolve('/join-couple'));
     });
 
     const planQuery = createQuery(() => ({
@@ -59,7 +60,7 @@
     let plan = $derived(planQuery.data);
 
     const formatDateClean = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        return new SvelteDate(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
 
     // --- FUNGSI MASUK MODE EDIT ---
@@ -68,7 +69,7 @@
         editTitle = plan.title;
         
         // Sesuaikan tanggal UTC dari server ke waktu lokal untuk input datetime-local
-        const d = new Date(plan.plan_date);
+        const d = new SvelteDate(plan.plan_date);
         d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
         editPlanDate = d.toISOString().slice(0, 16);
         
@@ -84,7 +85,7 @@
         e.preventDefault();
         isSaving = true;
         try {
-            const isoDate = new Date(editPlanDate).toISOString();
+            const isoDate = new SvelteDate(editPlanDate).toISOString();
             await datePlanService.updateDatePlan(planId, {
                 title: editTitle,
                 plan_date: isoDate,
@@ -112,7 +113,7 @@
             await datePlanService.deleteDatePlan(planId);
             queryClient.invalidateQueries({ queryKey: ['date-plans'] });
             queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-            await goto(resolve('/date-plans' as any));
+            await goto(resolve('/date-plans'));
         } catch (error) {
             console.error(error);
             alertState = { isOpen: true, title: 'Error', message: 'Failed to delete date plan.' };
@@ -173,7 +174,7 @@
             queryClient.invalidateQueries({ queryKey: ['date-plans'] });
             queryClient.invalidateQueries({ queryKey: ['memories'] });
             queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-            await goto(resolve(`/memories/${memoryRes.id}` as any));
+            await goto(resolve('/memories/[id]', { id: memoryRes.id }));
         } catch (error) {
             console.error(error);
             alertState = { isOpen: true, title: 'Error', message: 'Failed to convert date to memory.' };
@@ -254,7 +255,7 @@
                         
                         <div class="space-y-4 mb-6">
                             <div class="flex items-center gap-3 text-gray-600">
-                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-white/60 shadow-sm border border-white">
+                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/60 shadow-sm border border-white">
                                     <svg class="h-5 w-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 </div>
                                 <span class="text-[15px] font-bold">{formatDateClean(plan.plan_date.toString())}</span>
@@ -262,7 +263,7 @@
                             
                             {#if plan.location_name && (!plan.latitude || !plan.longitude)}
                                 <div class="flex items-center gap-3 text-gray-600">
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-white/60 shadow-sm border border-white">
+                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/60 shadow-sm border border-white">
                                         <svg class="h-5 w-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                     </div>
                                     <span class="text-[15px] font-bold">{plan.location_name}</span>
@@ -282,7 +283,7 @@
                         {/if}
 
                         {#if plan.notes}
-                            <div class="rounded-[24px] bg-white/40 backdrop-blur-xl border border-white/60 p-5 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.02)]">
+                            <div class="rounded-3xl bg-white/40 backdrop-blur-xl border border-white/60 p-5 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.02)]">
                                 <p class="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-2">Notes & Ideas</p>
                                 <p class="text-[15px] font-medium text-gray-700 leading-relaxed">{plan.notes}</p>
                             </div>
@@ -300,8 +301,8 @@
 
                 {#if planQuery.isPending}
                     <div class="space-y-3">
-                        <div class="h-16 w-full animate-pulse rounded-[24px] bg-white/50 border border-gray-100"></div>
-                        <div class="h-16 w-full animate-pulse rounded-[24px] bg-white/50 border border-gray-100"></div>
+                        <div class="h-16 w-full animate-pulse rounded-3xl bg-white/50 border border-gray-100"></div>
+                        <div class="h-16 w-full animate-pulse rounded-3xl bg-white/50 border border-gray-100"></div>
                     </div>
                 {:else if plan}
                     <div class="space-y-3 mb-5">
@@ -316,7 +317,7 @@
                         {/each}
                         
                         {#if plan.checklists.length === 0}
-                            <div class="rounded-[24px] border border-dashed border-gray-300 py-6 text-center text-sm font-semibold text-gray-400">
+                            <div class="rounded-3xl border border-dashed border-gray-300 py-6 text-center text-sm font-semibold text-gray-400">
                                 No checklist items yet.
                             </div>
                         {/if}
@@ -330,10 +331,10 @@
                                     type="text" 
                                     placeholder="Add a new task..." 
                                     bind:value={newItemText} 
-                                    class="!gap-0"
+                                    class="gap-0!"
                                 />
                             </div>
-                            <Button type="submit" variant="secondary" size="md" class="shrink-0 h-14 w-14 !px-0 rounded-2xl bg-white shadow-sm border border-gray-100" isLoading={isAdding}>
+                            <Button type="submit" variant="secondary" size="md" class="shrink-0 h-14 w-14 px-0! rounded-2xl bg-white shadow-sm border border-gray-100" isLoading={isAdding}>
                                 {#if !isAdding}
                                     <svg class="h-6 w-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
                                 {/if}

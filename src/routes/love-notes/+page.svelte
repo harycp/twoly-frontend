@@ -16,8 +16,8 @@
     const queryClient = useQueryClient();
 
     onMount(() => {
-        if (!authStore.isAuthenticated) goto(resolve('/login' as any));
-        else if (!coupleStore.isActive) goto(resolve('/join-couple' as any));
+        if (!authStore.isAuthenticated) goto(resolve('/login'));
+        else if (!coupleStore.isActive) goto(resolve('/join-couple'));
     });
 
     let currentTab = $state('received'); // 'received' | 'sent'
@@ -70,7 +70,7 @@
     <!-- HEADER PINTAR -->
     <PageHeader title="Love Notes" subtitle="Secret messages for you" backUrl="/dashboard">
         {#snippet rightContent()}
-            <a aria-label="Write a note" href={resolve('/love-notes/new' as any)} class="group flex h-11 w-11 items-center justify-center rounded-full bg-gray-900 text-white shadow-sm transition-all duration-300 active:scale-90 hover:bg-gray-800">
+            <a aria-label="Write a note" href={resolve('/love-notes/new')} class="group flex h-11 w-11 items-center justify-center rounded-full bg-gray-900 text-white shadow-sm transition-all duration-300 active:scale-90 hover:bg-gray-800">
                 <svg class="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
             </a>
         {/snippet}
