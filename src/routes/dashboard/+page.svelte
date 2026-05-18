@@ -24,6 +24,10 @@
     let myId = $derived(authStore.user?.id);
     let myName = $derived(authStore.user?.name || 'Me');
     let partnerName = $derived(coupleStore.partner?.name || 'Partner');
+    
+    // Menarik data avatar url dari store
+    let myAvatar = $derived(authStore.user?.avatar_url);
+    let partnerAvatar = $derived(coupleStore.partner?.avatar_url);
 
     let daysTogether = $derived.by(() => {
         const startDateStr = coupleStore.data?.anniversary_date || coupleStore.data?.created_at;
@@ -100,11 +104,19 @@
             <p class="text-sm font-medium text-gray-400 tracking-wide">Your digital emotional home</p>
         </div>
         <div class="flex -space-x-3 drop-shadow-sm pb-1">
-            <div class="flex h-12 w-12 items-center justify-center rounded-full ring-4 ring-[#FFF7ED] bg-gray-900 text-sm font-bold text-white shadow-md z-10">
-                {myName.charAt(0).toUpperCase()}
+            <div class="relative flex h-12 w-12 items-center justify-center rounded-full ring-4 ring-[#FFF7ED] bg-gray-900 text-sm font-bold text-white shadow-md z-10 overflow-hidden">
+                {#if myAvatar}
+                    <img src={myAvatar} alt={myName} class="h-full w-full object-cover" />
+                {:else}
+                    {myName.charAt(0).toUpperCase()}
+                {/if}
             </div>
-            <div class="flex h-12 w-12 items-center justify-center rounded-full ring-4 ring-[#FFF7ED] bg-[#F8B4C8] text-sm font-bold text-white shadow-md">
-                {partnerName.charAt(0).toUpperCase()}
+            <div class="relative flex h-12 w-12 items-center justify-center rounded-full ring-4 ring-[#FFF7ED] bg-[#F8B4C8] text-sm font-bold text-white shadow-md overflow-hidden">
+                {#if partnerAvatar}
+                    <img src={partnerAvatar} alt={partnerName} class="h-full w-full object-cover" />
+                {:else}
+                    {partnerName.charAt(0).toUpperCase()}
+                {/if}
             </div>
         </div>
     </header>

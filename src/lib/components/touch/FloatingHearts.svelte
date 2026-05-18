@@ -17,7 +17,11 @@
     let { hearts }: Props = $props();
 </script>
 
-<div class="absolute inset-0 pointer-events-none overflow-hidden z-20">
+<!-- PERBAIKAN: 
+     1. Menghapus 'overflow-hidden' agar hati tidak terpotong garis lurus.
+     2. Mengubah 'absolute' menjadi 'fixed' dan 'z-[100]' agar hati benar-benar melayang menutupi seluruh layar (termasuk melewati header di atas). 
+-->
+<div class="fixed inset-0 pointer-events-none z-[100]">
     {#each hearts as heart (heart.id)}
         <div 
             class="absolute bottom-[35%] origin-bottom"
