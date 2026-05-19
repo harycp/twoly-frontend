@@ -18,19 +18,22 @@
 
     const queryClient = useQueryClient();
 
+    // State Form Profil
     let name = $state('');
     let username = $state('');
     let avatarUrl = $state('');
     
-    let fileInput: HTMLInputElement | null = null;
-    let avatarFile = $state<File | null>(null);
+    // State Khusus File Upload (Avatar)
+    let fileInput: HTMLInputElement;
     let localAvatarPreview = $state<string | null>(null);
     let isSavingProfile = $state(false);
+    let isUploadingAvatar = $state(false);
 
+    // State Form Couple
     let anniversaryDate = $state('');
     let isSavingCouple = $state(false);
 
-    let isLoggingOut = $state(false);
+    // State Global & Alert
     let alertState = $state({ isOpen: false, title: '', message: '' });
     
     let partnerName = $derived(coupleStore.partner?.name || 'Waiting for partner...');
@@ -38,45 +41,63 @@
 
     onMount(() => {
         if (!authStore.isAuthenticated) {
-            goto(resolve('/login'));
+            void goto(resolve('/login'));
             return;
         }
 
         name = authStore.user?.name || '';
         username = authStore.user?.username || '';
-        avatarUrl = authStore.user?.avatar_url || '';
+        
+        // CACHE-BUSTER: Tambahkan timestamp agar browser selalu mengambil foto paling baru dari server!
+        if (authStore.user?.avatar_url) {
+            avatarUrl = `${authStore.user.avatar_url}?v=${new Date().getTime()}`;
+        }
         
         if (coupleStore.data?.anniversary_date) {
             anniversaryDate = coupleStore.data.anniversary_date.split('T')[0];
         }
     });
 
-    function handleAvatarSelect(e: Event) {
+    // === FITUR AUTO-UPLOAD AVATAR ===
+    async function handleAvatarSelect(e: Event) {
         const input = e.target as HTMLInputElement;
-        if (input.files && input.files.length > 0) {
-            avatarFile = input.files[0];
-            localAvatarPreview = URL.createObjectURL(avatarFile); 
+        if (!input.files || input.files.length === 0) return;
+
+        const file = input.files[0];
+        localAvatarPreview = URL.createObjectURL(file); 
+        isUploadingAvatar = true;
+
+        try {
+            // Upload langsung ke server sekejap setelah dipilih
+            await authService.updateProfile({ 
+                name, 
+                username,
+                avatar: file 
+            });
+            
+            // Perbarui URL dengan Cache-Buster baru agar langsung terganti di layar
+            avatarUrl = authStore.user?.avatar_url ? `${authStore.user.avatar_url}?v=${new Date().getTime()}` : '';
+            alertState = { isOpen: true, title: 'Success', message: 'Profile picture updated perfectly!' };
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to upload photo.';
+            alertState = { isOpen: true, title: 'Upload Failed', message };
+            localAvatarPreview = null; 
+        } finally {
+            isUploadingAvatar = false;
+            if (fileInput) fileInput.value = '';
         }
     }
 
+    // === FITUR SIMPAN DATA TEKS (NAMA & USERNAME) ===
     async function handleSaveProfile(e: SubmitEvent) {
         e.preventDefault();
         isSavingProfile = true;
         try {
-            await authService.updateProfile({ 
-                name, 
-                username,
-                avatar: avatarFile || undefined
-            });
-            
-            avatarFile = null;
-            localAvatarPreview = null;
-            avatarUrl = authStore.user?.avatar_url || ''; 
-            
-            alertState = { isOpen: true, title: 'Success', message: 'Your profile has been updated!' };
+            await authService.updateProfile({ name, username });
+            alertState = { isOpen: true, title: 'Success', message: 'Your profile details have been saved!' };
         } catch (error: unknown) {
-            const msg = error instanceof Error ? error.message : String(error);
-            alertState = { isOpen: true, title: 'Error', message: msg || 'Failed to update profile.' };
+            const message = error instanceof Error ? error.message : 'Failed to update profile.';
+            alertState = { isOpen: true, title: 'Error', message };
         } finally {
             isSavingProfile = false;
         }
@@ -90,23 +111,21 @@
                 anniversary_date: anniversaryDate || undefined 
             });
             queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-            
             alertState = { isOpen: true, title: 'Success', message: 'Couple space settings updated!' };
         } catch (error: unknown) {
-            const msg = error instanceof Error ? error.message : String(error);
-            alertState = { isOpen: true, title: 'Error', message: msg || 'Failed to update settings.' };
+            const message = error instanceof Error ? error.message : 'Failed to update settings.';
+            alertState = { isOpen: true, title: 'Error', message };
         } finally {
             isSavingCouple = false;
         }
     }
 
     async function handleLogout() {
-        isLoggingOut = true;
         await new Promise(r => setTimeout(r, 800)); 
         authService.logout();
         coupleStore.clear(); 
         queryClient.clear(); 
-        goto(resolve('/login'));
+        void goto(resolve('/login'));
     }
 
     function copyInviteCode() {
@@ -126,11 +145,12 @@
 
     <main class="px-6 pt-6 pb-32 space-y-10">
         
-        <!-- AVATAR HEADER PREMIUM (Kini menjadi tombol upload file yang interaktif) -->
+        <!-- AVATAR HEADER PREMIUM -->
         <div class="flex flex-col items-center justify-center pt-4 pb-2">
             <button 
                 type="button"
-                onclick={() => fileInput?.click()}
+                onclick={() => fileInput.click()}
+                disabled={isUploadingAvatar}
                 class="relative group outline-none text-left"
                 aria-label="Change Profile Picture"
             >
@@ -146,26 +166,43 @@
                 {#if localAvatarPreview || avatarUrl}
                     <div class="relative h-28 w-28 rounded-[36px] bg-white shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] rotate-3 transition-transform duration-500 group-hover:rotate-0 border-[3px] border-white overflow-hidden p-1">
                         <img src={localAvatarPreview || avatarUrl} alt="Avatar" class="h-full w-full object-cover rounded-[28px]" />
+                        
+                        <!-- Overlay Loading Spinner saat proses upload -->
+                        {#if isUploadingAvatar}
+                            <div class="absolute inset-0 bg-black/40 z-20 flex items-center justify-center rounded-[28px] m-1 backdrop-blur-[2px]">
+                                <svg class="h-8 w-8 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            </div>
+                        {/if}
+
                         <!-- Hover Overlay Effect -->
-                        <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-[28px] m-1 backdrop-blur-[2px]">
-                            <svg class="h-7 w-7 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        </div>
+                        {#if !isUploadingAvatar}
+                            <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-[28px] m-1 backdrop-blur-[2px]">
+                                <svg class="h-7 w-7 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            </div>
+                        {/if}
                     </div>
                 {:else}
-                    <div class="relative flex h-28 w-28 items-center justify-center rounded-[36px] bg-gradient-to-br from-[#FDA4AF] to-[#F8B4C8] text-5xl font-black text-white shadow-[0_12px_40px_-12px_rgba(253,164,175,0.6)] border-[3px] border-white rotate-3 transition-transform duration-500 group-hover:rotate-0 p-1">
+                    <div class="relative flex h-28 w-28 items-center justify-center rounded-[36px] bg-linear-to-br from-[#FDA4AF] to-[#F8B4C8] text-5xl font-black text-white shadow-[0_12px_40px_-12px_rgba(253,164,175,0.6)] border-[3px] border-white rotate-3 transition-transform duration-500 group-hover:rotate-0 p-1">
                         <div class="flex h-full w-full items-center justify-center rounded-[28px] border-2 border-white/20">
-                            {myInitials}
+                            {#if isUploadingAvatar}
+                                <svg class="h-8 w-8 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            {:else}
+                                {myInitials}
+                            {/if}
                         </div>
-                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-[28px] m-1 backdrop-blur-[1px]">
-                            <svg class="h-7 w-7 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        </div>
+                        {#if !isUploadingAvatar}
+                            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-[28px] m-1 backdrop-blur-[1px]">
+                                <svg class="h-7 w-7 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            </div>
+                        {/if}
                     </div>
                 {/if}
                 
-                <!-- Badge Pensil yang menonjol -->
-                <div class="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-white shadow-lg border-2 border-white transition-transform group-active:scale-90 pointer-events-none">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                </div>
+                {#if !isUploadingAvatar}
+                    <div class="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-white shadow-lg border-2 border-white transition-transform group-active:scale-90 pointer-events-none">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </div>
+                {/if}
             </button>
 
             <h2 class="mt-6 text-2xl font-black text-gray-900 tracking-tight leading-none">{authStore.user?.name}</h2>
@@ -181,13 +218,14 @@
                 <h3 class="text-[14px] font-black uppercase tracking-widest text-gray-800">Your Profile</h3>
             </div>
             
-            <form onsubmit={handleSaveProfile} class="space-y-5">
-                <Input label="Full Name" type="text" bind:value={name} required />
-                <Input label="Username" type="text" bind:value={username} required />
+            <!-- Ditambahkan autocomplete="off" untuk meredam error dari ekstensi Password Manager -->
+            <form onsubmit={handleSaveProfile} autocomplete="off" class="space-y-5">
+                <Input label="Full Name" type="text" bind:value={name} autocomplete="off" required />
+                <Input label="Username" type="text" bind:value={username} autocomplete="off" required />
                 
                 <div class="pt-3">
                     <Button type="submit" variant="secondary" size="md" class="w-full shadow-sm hover:shadow-md transition-all border-gray-100" isLoading={isSavingProfile}>
-                        Save Profile
+                        Save Details
                     </Button>
                 </div>
             </form>
@@ -195,7 +233,6 @@
 
         <!-- FORM 2: COUPLE SPACE -->
         <section class="rounded-[36px] bg-white/70 backdrop-blur-2xl p-7 shadow-[0_12px_40px_-16px_rgba(253,164,175,0.2)] border border-white/80 relative overflow-hidden">
-            <!-- Decorative Elegant Glow -->
             <div class="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#FDA4AF] opacity-10 blur-3xl pointer-events-none"></div>
             
             <div class="mb-6 flex items-center gap-3 border-b border-[#FDA4AF]/10 pb-4 relative z-10">
@@ -206,9 +243,13 @@
             </div>
 
             <!-- Linked Partner Info -->
-            <div class="mb-6 flex items-center gap-4 rounded-[24px] bg-white/50 border border-white p-4 shadow-sm relative z-10">
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#F8B4C8]/20 text-[#FDA4AF] font-black text-xl border border-white">
-                    {partnerName.charAt(0).toUpperCase()}
+            <div class="mb-6 flex items-center gap-4 rounded-3xl bg-white/50 border border-white p-4 shadow-sm relative z-10">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#F8B4C8]/20 text-[#FDA4AF] font-black text-xl border border-white overflow-hidden">
+                    {#if coupleStore.partner?.avatar_url}
+                        <img src="{coupleStore.partner.avatar_url}?v={new Date().getTime()}" alt={partnerName} class="h-full w-full object-cover" />
+                    {:else}
+                        {partnerName.charAt(0).toUpperCase()}
+                    {/if}
                 </div>
                 <div class="flex-1 overflow-hidden">
                     <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Linked Partner</p>
@@ -220,12 +261,12 @@
                 <Input label="Anniversary Date" type="date" bind:value={anniversaryDate} />
                 
                 <div class="flex flex-col gap-2 w-full pt-1">
-                    <p class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">Invite Code</p>
+                    <span class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">Invite Code</span>
                     <div class="flex gap-2">
                         <div class="flex-1 flex items-center h-14 rounded-2xl border border-white/60 bg-white/40 backdrop-blur-xl px-5 text-base font-black text-gray-900 tracking-[0.15em] shadow-inner">
                             {coupleStore.data?.invite_code || '------'}
                         </div>
-                        <Button type="button" variant="secondary" size="md" class="shrink-0 !px-4 h-14 bg-white shadow-sm border-white" onclick={copyInviteCode}>
+                        <Button type="button" variant="secondary" size="md" class="shrink-0 px-4! h-14 bg-white shadow-sm border-white" onclick={copyInviteCode}>
                             <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                         </Button>
                     </div>
@@ -247,9 +288,6 @@
                 dialogMessage="Are you sure you want to log out from this device? You can log back in anytime."
                 onDelete={handleLogout}
             />
-            {#if isLoggingOut}
-                <p class="text-center text-[12px] text-gray-500 mt-3">Logging out...</p>
-            {/if}
             <p class="text-center text-[11px] font-bold text-gray-400 mt-6 tracking-widest">
                 TWOLY BETA V1.0.0
             </p>

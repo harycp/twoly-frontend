@@ -122,8 +122,7 @@
 
 <style>
     /* Mengimpor font tulisan tangan estetik khusus form surat cinta ini */
-    @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap');
     :global(.font-handwritten textarea) { 
-        font-family: 'Caveat', cursive !important; 
+        font-family: 'Segoe Script', 'Bradley Hand', 'Comic Sans MS', cursive !important; 
     }
 </style>
