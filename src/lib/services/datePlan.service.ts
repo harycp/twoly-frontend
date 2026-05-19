@@ -1,5 +1,5 @@
 import { apiService } from './api.service';
-import type { DatePlan } from '../types/models.types';
+import type { DatePlan, Memory } from '../types/models.types';
 
 export interface CreateDatePlanRequest {
     title: string;
@@ -42,8 +42,8 @@ export const datePlanService = {
         return await apiService.patch<DatePlan>(`/date-plans/${id}/status`, data);
     },
 
-    async convertToMemory(id: string): Promise<{ id: string }> {
-        return await apiService.post<{ id: string }>(`/date-plans/${id}/convert-to-memory`, {});
+    async convertToMemory(id: string): Promise<Memory> {
+        return await apiService.post<Memory>(`/date-plans/${id}/convert-to-memory`, {});
     },
 
     async addChecklistItem(id: string, data: { item: string }): Promise<void> {

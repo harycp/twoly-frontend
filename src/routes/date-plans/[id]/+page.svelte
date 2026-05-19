@@ -170,14 +170,27 @@
     async function handleConvertToMemory() {
         isConverting = true;
         try {
-            const memoryRes = await datePlanService.convertToMemory(planId);
+            const memory = await datePlanService.convertToMemory(planId);
+
             queryClient.invalidateQueries({ queryKey: ['date-plans'] });
             queryClient.invalidateQueries({ queryKey: ['memories'] });
             queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-            await goto(resolve('/memories/[id]', { id: memoryRes.id }));
-        } catch (error) {
+
+            // Navigate to the created memory detail
+            await goto(resolve('/memories/[id]', { id: memory.id }));
+        } catch (error: unknown) {
             console.error(error);
-            alertState = { isOpen: true, title: 'Error', message: 'Failed to convert date to memory.' };
+            let message = 'Failed to convert date to memory.';
+
+            if (error instanceof Error) {
+                const errMsg = error.message || '';
+                const lower = errMsg.toLowerCase();
+                if (lower.includes('already been converted') || lower.includes('already converted')) {
+                    message = errMsg;
+                }
+            }
+
+            alertState = { isOpen: true, title: 'Error', message };
         } finally {
             isConverting = false;
         }

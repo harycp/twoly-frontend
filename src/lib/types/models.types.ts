@@ -10,6 +10,7 @@ export interface Memory {
     longitude?: number;
     mood?: string;
     tags?: string[];
+    converted_from_date_plan_id?: string | null;
     created_at: string;
 }
 
