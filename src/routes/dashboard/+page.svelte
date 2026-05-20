@@ -100,6 +100,7 @@
 </script>
 
 <MobileShell>
+    <!-- GREETING HEADER PREMIUM -->
     <PageHeader title={`Hi, ${myName.split(' ')[0]} 👋`} subtitle="Your digital emotional home">
         {#snippet leftContent()}
             <div class="flex items-center gap-2">
@@ -108,15 +109,15 @@
             </div>
         {/snippet}
         {#snippet rightContent()}
-            <div class="flex -space-x-3 drop-shadow-sm pb-1">
-                <div class="relative z-10 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full ring-4 ring-[#FFF7ED] bg-gray-900 text-sm font-bold text-white shadow-md">
+            <div class="flex -space-x-4 drop-shadow-sm pb-1 hover:space-x-1 transition-all duration-300">
+                <div class="relative z-20 flex h-13 w-13 items-center justify-center overflow-hidden rounded-full border-[3px] border-[#FFF7ED] bg-gray-900 text-base font-black text-white shadow-lg transition-transform hover:scale-110 hover:z-30">
                     {#if myAvatar}
                         <img src={myAvatar} alt={myName} class="h-full w-full object-cover" />
                     {:else}
                         {myName.charAt(0).toUpperCase()}
                     {/if}
                 </div>
-                <div class="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full ring-4 ring-[#FFF7ED] bg-[#F8B4C8] text-sm font-bold text-white shadow-md">
+                <div class="relative z-10 flex h-13 w-13 items-center justify-center overflow-hidden rounded-full border-[3px] border-[#FFF7ED] bg-linear-to-br from-[#F8B4C8] to-[#FDA4AF] text-base font-black text-white shadow-lg transition-transform hover:scale-110 hover:z-30">
                     {#if partnerAvatar}
                         <img src={partnerAvatar} alt={partnerName} class="h-full w-full object-cover" />
                     {:else}
@@ -127,164 +128,181 @@
         {/snippet}
     </PageHeader>
 
-    <main class="px-6 pb-28 space-y-6">
+    <main class="px-6 pb-28 space-y-7">
         
-        <div class="group relative overflow-hidden rounded-[36px] bg-linear-to-br from-[#F8B4C8] to-[#FDA4AF] p-8 text-white shadow-[0_16px_40px_-12px_rgba(253,164,175,0.6)] transition-transform duration-500 ease-out hover:scale-[1.02] active:scale-95">
-            <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white opacity-20 blur-3xl"></div>
-            <div class="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-[#DDD6FE] opacity-20 blur-3xl"></div>
+        <!-- WIDGET 1: Hero Love Streak (Masterpiece Card) -->
+        <div class="group relative overflow-hidden rounded-[40px] bg-linear-to-br from-[#F8B4C8] via-[#FDA4AF] to-[#fb7185] p-8 text-white shadow-[0_20px_50px_-12px_rgba(253,164,175,0.7)] transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.02] active:scale-95 border border-white/20">
+            <!-- Dekorasi Kaca & Cahaya -->
+            <div class="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-white opacity-20 blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-12 -bottom-12 h-48 w-48 rounded-full bg-[#DDD6FE] opacity-30 blur-3xl pointer-events-none"></div>
             
             <div class="relative z-10 flex flex-col justify-center items-center text-center">
-                <div class="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-xl border border-white/20 px-4 py-2 mb-4 shadow-sm">
-                    <span class="relative flex h-2 w-2">
+                <!-- Badge Dinamis -->
+                <div class="inline-flex items-center gap-2.5 rounded-full bg-white/20 backdrop-blur-xl border border-white/30 px-4 py-2 mb-4 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.1)]">
+                    <span class="relative flex h-2.5 w-2.5">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
                     </span>
-                    <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-white/95">Love Streak</span>
+                    <span class="text-[11px] font-black uppercase tracking-[0.2em] text-white/95 mt-0.5">Love Streak</span>
                 </div>
                 
-                <div class="flex items-baseline gap-2">
-                    <span class="text-7xl font-black tracking-tighter drop-shadow-sm">{daysTogether}</span>
+                <div class="flex items-baseline gap-2 mb-1">
+                    <span class="text-[80px] font-black tracking-tighter drop-shadow-md leading-none">{daysTogether}</span>
                 </div>
-                <p class="text-base font-semibold text-white/90 tracking-wide mt-1">Days together</p>
+                <p class="text-[17px] font-bold text-white/90 tracking-wide">Days together</p>
                 
                 {#if coupleStore.data?.anniversary_date}
-                    <p class="text-[11px] font-bold text-white/70 uppercase tracking-widest mt-4 bg-black/10 px-3 py-1 rounded-full">
-                        Since {formatDateClean(coupleStore.data.anniversary_date)}
-                    </p>
+                    <div class="mt-5 rounded-2xl bg-black/10 backdrop-blur-md px-4 py-2 border border-white/10">
+                        <p class="text-[11px] font-black text-white/80 uppercase tracking-widest">
+                            Since {formatDateClean(coupleStore.data.anniversary_date)}
+                        </p>
+                    </div>
                 {/if}
             </div>
         </div>
 
-        <div class="flex items-center gap-3">
-            <a href={resolve('/memories/new')} class="flex-1 flex flex-col items-center justify-center py-4 rounded-[28px] bg-white/60 backdrop-blur-xl shadow-sm border border-white active:scale-95 transition-all hover:bg-white/80 group">
-                <div class="h-12 w-12 rounded-full bg-[#FDA4AF]/15 text-[#FDA4AF] flex items-center justify-center mb-2 transition-transform group-hover:-translate-y-1">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        <!-- QUICK ACTIONS: UX Diperbaiki (Memory, Plan Date, Gallery) -->
+        <div class="flex items-center justify-between gap-3">
+            <a href={resolve('/memories/new')} class="flex-1 flex flex-col items-center justify-center py-5 rounded-4xl bg-white/60 backdrop-blur-xl shadow-[0_8px_20px_-8px_rgba(0,0,0,0.04)] border border-white active:scale-95 transition-all duration-300 hover:bg-white hover:shadow-[0_12px_25px_-8px_rgba(0,0,0,0.08)] group">
+                <div class="h-14 w-14 rounded-[20px] bg-[#FDA4AF]/15 text-[#FDA4AF] flex items-center justify-center mb-3 transition-transform duration-300 group-hover:-translate-y-1 group-hover:bg-[#FDA4AF] group-hover:text-white group-hover:shadow-md">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                 </div>
-                <span class="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">Memory</span>
+                <span class="text-[11px] font-black text-gray-500 uppercase tracking-widest group-hover:text-gray-900 transition-colors">Memory</span>
             </a>
             
-            <a href={resolve('/date-plans/new')} class="flex-1 flex flex-col items-center justify-center py-4 rounded-[28px] bg-white/60 backdrop-blur-xl shadow-sm border border-white active:scale-95 transition-all hover:bg-white/80 group">
-                <div class="h-12 w-12 rounded-full bg-[#FED7AA]/30 text-[#EA580C] flex items-center justify-center mb-2 transition-transform group-hover:-translate-y-1">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <a href={resolve('/date-plans/new')} class="flex-1 flex flex-col items-center justify-center py-5 rounded-4xl bg-white/60 backdrop-blur-xl shadow-[0_8px_20px_-8px_rgba(0,0,0,0.04)] border border-white active:scale-95 transition-all duration-300 hover:bg-white hover:shadow-[0_12px_25px_-8px_rgba(0,0,0,0.08)] group">
+                <div class="h-14 w-14 rounded-[20px] bg-[#FED7AA]/30 text-[#EA580C] flex items-center justify-center mb-3 transition-transform duration-300 group-hover:-translate-y-1 group-hover:bg-[#EA580C] group-hover:text-white group-hover:shadow-md">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 </div>
-                <span class="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">Plan Date</span>
+                <span class="text-[11px] font-black text-gray-500 uppercase tracking-widest group-hover:text-gray-900 transition-colors">Plan Date</span>
             </a>
 
-            <a href={resolve('/love-notes/new')} class="flex-1 flex flex-col items-center justify-center py-4 rounded-[28px] bg-white/60 backdrop-blur-xl shadow-sm border border-white active:scale-95 transition-all hover:bg-white/80 group">
-                <div class="h-12 w-12 rounded-full bg-[#DDD6FE]/40 text-[#8B5CF6] flex items-center justify-center mb-2 transition-transform group-hover:-translate-y-1">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5M10 12l2.25 1.5M14 12l-2.25 1.5"/></svg>
+            <!-- MENGGANTI 'SEND NOTE' MENJADI 'GALLERY' -->
+            <a href={resolve('/gallery')} class="flex-1 flex flex-col items-center justify-center py-5 rounded-4xl bg-white/60 backdrop-blur-xl shadow-[0_8px_20px_-8px_rgba(0,0,0,0.04)] border border-white active:scale-95 transition-all duration-300 hover:bg-white hover:shadow-[0_12px_25px_-8px_rgba(0,0,0,0.08)] group">
+                <div class="h-14 w-14 rounded-[20px] bg-[#DDD6FE]/40 text-[#8B5CF6] flex items-center justify-center mb-3 transition-transform duration-300 group-hover:-translate-y-1 group-hover:bg-[#8B5CF6] group-hover:text-white group-hover:shadow-md">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 </div>
-                <span class="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">Send Note</span>
+                <span class="text-[11px] font-black text-gray-500 uppercase tracking-widest group-hover:text-gray-900 transition-colors">Gallery</span>
             </a>
         </div>
 
+        <!-- WIDGET ROW: Smart Blocks -->
         <div class="grid grid-cols-2 gap-4">
+            <!-- NEXT ANNIVERSARY -->
             {#if nextAnniversary !== null}
-            <div class="relative overflow-hidden rounded-4xl bg-white p-5 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-gray-50/50 flex flex-col justify-between aspect-square">
-                <div class="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#DDD6FE]/30 text-[#8B5CF6] text-xl shadow-inner">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            <div class="relative overflow-hidden rounded-[36px] bg-white p-6 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-white flex flex-col justify-between aspect-square group transition-all duration-300 hover:shadow-lg">
+                <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-[20px] bg-[#DDD6FE]/20 text-[#8B5CF6] text-xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] transition-transform duration-500 group-hover:scale-110">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                 </div>
                 <div>
-                    <p class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-1">Next Anniv.</p>
-                    <p class="text-2xl font-black text-gray-900 tracking-tight leading-none">{nextAnniversary} <span class="text-xs font-bold text-gray-400">days left</span></p>
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Next Anniv</p>
+                    <p class="text-3xl font-black text-gray-900 tracking-tight leading-none">{nextAnniversary} <span class="text-[13px] font-bold text-gray-400 tracking-normal">days</span></p>
                 </div>
             </div>
             {/if}
 
-            <a href={resolve(closestPlan ? `/date-plans/${closestPlan.id}` : '/date-plans')} class="relative overflow-hidden rounded-4xl bg-white p-5 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-gray-50/50 transition-transform duration-300 ease-out active:scale-95 flex flex-col justify-between aspect-square group">
-                <div class="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FED7AA]/30 text-[#EA580C] text-xl shadow-inner transition-transform group-hover:scale-110">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <!-- UPCOMING PLAN -->
+            <a href={closestPlan ? resolve('/date-plans/[id]', { id: closestPlan.id }) : resolve('/date-plans')} class="relative overflow-hidden rounded-[36px] bg-white p-6 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-white transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-95 flex flex-col justify-between aspect-square group hover:shadow-lg">
+                <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-[20px] bg-[#FED7AA]/20 text-[#EA580C] text-xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] transition-transform duration-500 group-hover:scale-110">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 </div>
                 <div>
-                    <p class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-1">Up Next</p>
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Up Next</p>
                     {#if closestPlan}
-                        <p class="text-[15px] font-black text-gray-900 tracking-tight leading-tight truncate">{closestPlan.title}</p>
-                        <p class="text-[11px] font-bold text-[#EA580C] mt-0.5">
+                        <p class="text-[16px] font-black text-gray-900 tracking-tight leading-tight truncate">{closestPlan.title}</p>
+                        <p class="text-[12px] font-extrabold text-[#EA580C] mt-1">
                             {closestPlanDaysLeft === 0 ? 'Today!' : `in ${closestPlanDaysLeft} days`}
                         </p>
                     {:else}
-                        <p class="text-[14px] font-black text-gray-400 tracking-tight leading-tight">No plans yet</p>
-                        <p class="text-[11px] font-bold text-[#EA580C] mt-0.5">Tap to plan a date</p>
+                        <p class="text-[15px] font-black text-gray-400 tracking-tight leading-tight">No plans yet</p>
+                        <p class="text-[11px] font-extrabold text-[#EA580C] mt-1">Tap to plan</p>
                     {/if}
                 </div>
             </a>
         </div>
 
-        <a href={resolve('/love-notes')} class="group relative flex items-center justify-between overflow-hidden rounded-4xl bg-white p-5 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-gray-50/50 transition-transform duration-300 ease-out active:scale-95">
-            <div class="flex items-center gap-4">
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F8B4C8]/20 text-[#FDA4AF] shadow-inner relative transition-transform group-hover:rotate-12">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5M10 12l2.25 1.5M14 12l-2.25 1.5"/></svg>
+        <!-- LOVE NOTES SMART INBOX (Masterclass Upgrade) -->
+        <a href={resolve('/love-notes')} class="group relative flex items-center justify-between overflow-hidden rounded-[36px] bg-white p-6 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-white transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-95 {lockedNotesCount > 0 ? 'ring-2 ring-[#FDA4AF]/40 shadow-[0_12px_40px_-10px_rgba(253,164,175,0.4)]' : ''}">
+            <!-- Glow Effect di Background jika ada pesan -->
+            {#if lockedNotesCount > 0}
+                <div class="absolute -left-10 top-0 h-full w-32 bg-[#FDA4AF] opacity-10 blur-2xl animate-pulse pointer-events-none"></div>
+            {/if}
+
+            <div class="flex items-center gap-5 relative z-10">
+                <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-[22px] bg-[#F8B4C8]/20 text-[#FDA4AF] shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] relative transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5M10 12l2.25 1.5M14 12l-2.25 1.5"/></svg>
                     {#if lockedNotesCount > 0}
-                        <div class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white border-[1.5px] border-white">{lockedNotesCount}</div>
+                        <div class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white border-2 border-white animate-bounce shadow-md">{lockedNotesCount}</div>
                     {/if}
                 </div>
                 <div>
-                    <h3 class="text-[17px] font-black text-gray-900 tracking-tight">Love Notes</h3>
-                    <p class="text-[12px] font-bold text-gray-400 mt-0.5">
+                    <h3 class="text-[18px] font-black text-gray-900 tracking-tight leading-none mb-1">Secret Mailbox</h3>
+                    <p class="text-[13px] font-bold text-gray-400 leading-snug">
                         {#if lockedNotesCount > 0}
-                            You have <span class="text-[#FDA4AF]">{lockedNotesCount} locked note{lockedNotesCount > 1 ? 's' : ''}</span> 💌
+                            You have <span class="text-[#FDA4AF]">{lockedNotesCount} locked note{lockedNotesCount > 1 ? 's' : ''}</span> waiting 💌
                         {:else}
-                            Send a secret message
+                            Send a surprise message
                         {/if}
                     </p>
                 </div>
             </div>
-            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-50 text-gray-400 group-hover:bg-[#FDA4AF]/10 group-hover:text-[#FDA4AF] transition-colors">
-                <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-50 text-gray-400 group-hover:bg-[#FDA4AF]/15 group-hover:text-[#FDA4AF] transition-colors relative z-10">
+                <svg class="h-5 w-5 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
             </div>
         </a>
 
+        <!-- CAMERA ROLL SECTION -->
         <section class="pt-4 -mx-6">
-            <div class="mb-4 flex items-end justify-between px-6">
+            <div class="mb-5 flex items-end justify-between px-6">
                 <div>
-                    <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">Camera Roll</h2>
-                    <p class="text-xs font-bold text-gray-400 mt-0.5 uppercase tracking-widest">Recent memories</p>
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight">Camera Roll</h2>
+                    <p class="text-[12px] font-black text-gray-400 mt-1 uppercase tracking-[0.15em]">Recent memories</p>
                 </div>
-                <a aria-label="See all memories" href={resolve('/memories')} class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-gray-900 transition-all active:scale-90">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                <a aria-label="See all memories" href={resolve('/memories')} class="flex h-10 w-10 items-center justify-center rounded-[18px] bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-gray-900 hover:shadow-md transition-all duration-300 active:scale-90">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
 
             {#if memoriesQuery.isPending}
-                <div class="flex gap-4 overflow-x-auto pb-8 pt-2 px-6 snap-x hide-scrollbar">
-                    <div class="animate-pulse shrink-0 w-60 aspect-4/5 rounded-4xl bg-white/60 shadow-sm border border-gray-100"></div>
-                    <div class="animate-pulse shrink-0 w-60 aspect-4/5 rounded-4xl bg-white/60 shadow-sm border border-gray-100"></div>
+                <div class="flex gap-5 overflow-x-auto pb-8 pt-2 px-6 snap-x hide-scrollbar">
+                    <div class="animate-pulse shrink-0 w-64 aspect-4/5 rounded-[36px] bg-white/60 shadow-sm border border-gray-100"></div>
+                    <div class="animate-pulse shrink-0 w-64 aspect-4/5 rounded-[36px] bg-white/60 shadow-sm border border-gray-100"></div>
                 </div>
             {:else if recentMemories.length === 0}
-                <div class="mx-6 flex flex-col items-center justify-center rounded-[36px] bg-white/60 backdrop-blur-xl shadow-[0_8px_30px_-10px_rgba(0,0,0,0.03)] border border-white py-12 px-6 text-center">
-                    <div class="h-16 w-16 mb-4 rounded-[20px] bg-gray-50 flex items-center justify-center text-gray-300">
-                        <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <div class="mx-6 flex flex-col items-center justify-center rounded-[40px] bg-white/60 backdrop-blur-xl shadow-[0_8px_30px_-10px_rgba(0,0,0,0.03)] border border-white py-14 px-6 text-center">
+                    <div class="h-20 w-20 mb-5 rounded-3xl bg-gray-50 flex items-center justify-center text-gray-300 border border-white shadow-inner">
+                        <svg class="h-9 w-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
-                    <p class="text-[15px] font-black text-gray-800 tracking-tight">No moments yet</p>
-                    <p class="text-[12px] font-bold text-gray-400 mt-1">Start documenting your journey</p>
+                    <p class="text-[17px] font-black text-gray-800 tracking-tight">No moments yet</p>
+                    <p class="text-[13px] font-bold text-gray-400 mt-1">Start documenting your journey</p>
                 </div>
             {:else}
-                <div class="flex gap-4 overflow-x-auto pb-8 pt-2 px-6 snap-x hide-scrollbar">
+                <div class="flex gap-5 overflow-x-auto pb-8 pt-2 px-6 snap-x hide-scrollbar">
                     {#each recentMemories as memory, i (memory.id)}
-                        <a href={resolve(`/memories/${memory.id}`)} class="shrink-0 w-60 snap-center relative rounded-4xl overflow-hidden aspect-4/5 bg-gray-100 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.08)] transition-transform duration-500 hover:-translate-y-1 active:scale-95 group">
+                        <a href={resolve('/memories/[id]', { id: memory.id })} class="shrink-0 w-64 snap-center relative rounded-[36px] overflow-hidden aspect-4/5 bg-gray-100 shadow-[0_16px_40px_-15px_rgba(0,0,0,0.1)] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-2 active:scale-95 group">
                             
                             <MemoryCover memoryId={memory.id} fallbackIndex={i} />
 
-                            <div class="absolute inset-0 bg-linear-to-t from-gray-900/90 via-gray-900/20 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100 z-20 pointer-events-none"></div>
+                            <div class="absolute inset-0 bg-linear-to-t from-gray-900/95 via-gray-900/20 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100 z-20 pointer-events-none"></div>
 
-                            <div class="absolute inset-0 p-5 flex flex-col justify-between z-30 pointer-events-none">
+                            <div class="absolute inset-0 p-6 flex flex-col justify-between z-30 pointer-events-none">
                                 <div class="flex justify-between items-start">
-                                    <div class="inline-flex items-center rounded-full bg-white/20 backdrop-blur-md border border-white/20 px-3 py-1 shadow-sm">
+                                    <div class="inline-flex items-center rounded-full bg-white/20 backdrop-blur-md border border-white/20 px-3.5 py-1.5 shadow-sm">
                                         <span class="text-[10px] font-black uppercase tracking-[0.15em] text-white">
                                             {formatDateClean(memory.memory_date.toString())}
                                         </span>
                                     </div>
                                     {#if memory.mood}
-                                        <div class="inline-flex items-center rounded-full bg-white/20 backdrop-blur-md border border-white/20 px-2.5 py-1 shadow-sm">
-                                            <span class="text-[9px] font-black uppercase tracking-widest text-white">{memory.mood}</span>
+                                        <div class="inline-flex items-center rounded-full bg-white/20 backdrop-blur-md border border-white/20 px-3 py-1.5 shadow-sm">
+                                            <span class="text-[10px] font-black uppercase tracking-widest text-white">{memory.mood}</span>
                                         </div>
                                     {/if}
                                 </div>
 
                                 <div class="transform transition-transform duration-500 ease-out group-hover:-translate-y-1">
-                                    <h3 class="text-2xl font-black text-white tracking-tight leading-tight mb-2 drop-shadow-sm line-clamp-2">{memory.title}</h3>
+                                    <h3 class="text-[26px] font-black text-white tracking-tight leading-[1.1] mb-2 drop-shadow-md line-clamp-2">{memory.title}</h3>
                                     {#if memory.location_name}
-                                        <p class="flex items-center gap-1.5 text-[12px] font-bold text-white/80 mb-2 truncate">
+                                        <p class="flex items-center gap-1.5 text-[12px] font-bold text-white/80 mb-1 truncate">
                                             <svg class="h-3.5 w-3.5 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                             <span class="truncate">{memory.location_name}</span>
                                         </p>

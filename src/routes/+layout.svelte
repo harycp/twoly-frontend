@@ -1,8 +1,11 @@
 <script lang="ts">
     import '../app.css';
     import { browser } from '$app/environment';
+    import { onMount } from 'svelte';
     import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
     import type { Snippet } from 'svelte';
+    import { authStore } from '$lib/stores/auth.store.svelte';
+    import { authService } from '$lib/services/auth.service';
 
     const queryClient = new QueryClient({
         defaultOptions: {
@@ -15,6 +18,16 @@
     });
 
     let { children }: { children: Snippet } = $props();
+
+    onMount(async () => {
+        if (!browser || !authStore.isAuthenticated) return;
+
+        try {
+            await authService.getMe();
+        } catch {
+            authService.logout();
+        }
+    });
 </script>
 
 <svelte:head>

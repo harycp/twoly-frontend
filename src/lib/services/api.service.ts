@@ -16,6 +16,14 @@ interface ApiResponse<T> {
 	errors?: unknown;
 }
 
+function extractResponseData<T>(json: ApiResponse<T> | T): T {
+	if (json && typeof json === 'object' && 'data' in (json as ApiResponse<T>)) {
+		return (json as ApiResponse<T>).data as T;
+	}
+
+	return json as T;
+}
+
 function createHeaders(customHeaders?: HeadersInit, body?: BodyInit | object | null): Headers {
 	const headers = new Headers(customHeaders);
 
@@ -104,19 +112,24 @@ export const apiService = {
 		try {
 			const response = await fetch(url, config);
 
-			let json: ApiResponse<T> = {};
+			let json: ApiResponse<T> | T = {} as ApiResponse<T>;
 
 			const contentType = response.headers.get('content-type');
 
 			if (contentType?.includes('application/json')) {
-				json = (await response.json()) as ApiResponse<T>;
+				json = (await response.json()) as ApiResponse<T> | T;
 			}
 
 			if (!response.ok) {
-				throw new Error(json.message || `Request failed with status ${response.status}`);
+				const errorMessage =
+					json && typeof json === 'object' && 'message' in (json as ApiResponse<T>)
+						? (json as ApiResponse<T>).message
+						: undefined;
+
+				throw new Error(errorMessage || `Request failed with status ${response.status}`);
 			}
 
-			return json.data as T;
+			return extractResponseData<T>(json);
 		} catch (error) {
 			console.error(`[API Error] ${endpoint}:`, error);
 			throw error;

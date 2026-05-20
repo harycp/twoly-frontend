@@ -3,7 +3,7 @@ export interface User {
     name: string;
     username: string;
     email: string;
-    avatar_url?: string;
+    avatar_url?: string | null;
 }
 
 export interface AuthResponse {
@@ -26,6 +26,6 @@ export interface RegisterRequest {
 export interface UpdateProfileRequest {
     name: string;
     username?: string;
-    avatar_url?: string;
+    avatar_url?: string | null;
     avatar?: File;
 }

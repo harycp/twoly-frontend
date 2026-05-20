@@ -11,7 +11,17 @@ export const authService = {
     async login(data: LoginRequest): Promise<AuthResponse> {
         const response = await apiService.post<AuthResponse>('/auth/login', data, { requiresAuth: false });
         authStore.login(response.access_token, response.user);
-        return response;
+
+        try {
+            const freshUser = await this.getMe();
+            return {
+                ...response,
+                user: freshUser
+            };
+        } catch {
+            // Keep login successful even if profile refresh fails temporarily.
+            return response;
+        }
     },
 
     async getMe(): Promise<User> {
