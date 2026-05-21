@@ -31,6 +31,7 @@
 </script>
 
 <svelte:head>
+    <link rel="icon" href="/favicon.ico" />
 </svelte:head>
 
 <div style="font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;" class="text-gray-900 bg-[#FFF7ED] min-h-screen selection:bg-[#F8B4C8] selection:text-white antialiased">
