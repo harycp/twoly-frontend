@@ -4,6 +4,7 @@
     import { resolve } from '$app/paths';
     import { createQuery } from '@tanstack/svelte-query';
     import { SvelteDate } from 'svelte/reactivity';
+    import { fly } from 'svelte/transition';
     
     import { authStore } from '$lib/stores/auth.store.svelte';
     import { coupleStore } from '$lib/stores/couple.store.svelte';
@@ -27,6 +28,59 @@
     
     let myAvatar = $derived(authStore.user?.avatar_url);
     let partnerAvatar = $derived(coupleStore.partner?.avatar_url);
+
+    const PARTNER_ONLINE_GRACE_MS = 5 * 60 * 1000;
+
+    function isRecentlyOnline(dateString: string | null | undefined): boolean {
+        if (!dateString) return false;
+
+        const lastSeenAt = new Date(dateString).getTime();
+
+        if (Number.isNaN(lastSeenAt)) return false;
+
+        return Date.now() - lastSeenAt <= PARTNER_ONLINE_GRACE_MS;
+    }
+
+    // Presence Derived States
+    let isPartnerOnline = $derived.by(() => {
+        if (coupleStore.isPartnerPresenceSynced) {
+            return coupleStore.isPartnerOnline;
+        }
+
+        if (coupleStore.isPartnerOnline) return true;
+        return isRecentlyOnline(coupleStore.partnerLastSeen);
+    });
+
+    let partnerLastSeen = $derived(coupleStore.partnerLastSeen);
+
+    // Pop-up Logic
+    let activePopup = $state<'me' | 'partner' | null>(null);
+    let popupTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    function showPopup(type: 'me' | 'partner') {
+        activePopup = type;
+        if (popupTimeout) clearTimeout(popupTimeout);
+        popupTimeout = setTimeout(() => { activePopup = null; }, 4000);
+    }
+
+    function formatPartnerStatus() {
+        if (isPartnerOnline) return 'Online';
+        if (partnerLastSeen) return `Last seen ${formatRelativeTime(partnerLastSeen)}`;
+        return 'Offline';
+    }
+
+    const formatRelativeTime = (dateStr: string | null) => {
+        if (!dateStr) return 'Unknown';
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+        
+        if (diffInSeconds < 60) return 'Just now';
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+        
+        return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    };
 
     let daysTogether = $derived.by(() => {
         const startDateStr = coupleStore.data?.anniversary_date || coupleStore.data?.created_at;
@@ -97,6 +151,7 @@
     const formatDateClean = (dateString: string) => {
         return new SvelteDate(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
     };
+
 </script>
 
 <MobileShell>
@@ -109,21 +164,49 @@
             </div>
         {/snippet}
         {#snippet rightContent()}
-            <div class="flex -space-x-4 drop-shadow-sm pb-1 hover:space-x-1 transition-all duration-300">
-                <div class="relative z-20 flex h-13 w-13 items-center justify-center overflow-hidden rounded-full border-[3px] border-[#FFF7ED] bg-gray-900 text-base font-black text-white shadow-lg transition-transform hover:scale-110 hover:z-30">
+            <div class="relative flex -space-x-4 drop-shadow-sm pb-1 hover:space-x-1 transition-all duration-300">
+                <button aria-label="Check my status" onclick={() => showPopup('me')} class="relative z-20 flex h-13 w-13 items-center justify-center overflow-hidden rounded-full border-[3px] border-[#FFF7ED] bg-gray-900 text-base font-black text-white shadow-lg transition-transform hover:scale-110 hover:z-30 cursor-pointer p-0 focus:outline-none focus:ring-2 focus:ring-[#FDA4AF]/50">
                     {#if myAvatar}
                         <img src={myAvatar} alt={myName} class="h-full w-full object-cover" />
                     {:else}
                         {myName.charAt(0).toUpperCase()}
                     {/if}
-                </div>
-                <div class="relative z-10 flex h-13 w-13 items-center justify-center overflow-hidden rounded-full border-[3px] border-[#FFF7ED] bg-linear-to-br from-[#F8B4C8] to-[#FDA4AF] text-base font-black text-white shadow-lg transition-transform hover:scale-110 hover:z-30">
+                </button>
+                <button aria-label="Check partner status" onclick={() => showPopup('partner')} class="relative z-10 flex h-13 w-13 items-center justify-center overflow-hidden rounded-full border-[3px] border-[#FFF7ED] bg-linear-to-br from-[#F8B4C8] to-[#FDA4AF] text-base font-black text-white shadow-lg transition-transform hover:scale-110 hover:z-30 cursor-pointer p-0 focus:outline-none focus:ring-2 focus:ring-[#FDA4AF]/50">
                     {#if partnerAvatar}
                         <img src={partnerAvatar} alt={partnerName} class="h-full w-full object-cover" />
                     {:else}
                         {partnerName.charAt(0).toUpperCase()}
                     {/if}
-                </div>
+                    <!-- Tiny green dot indicator if partner is currently online -->
+                    {#if isPartnerOnline}
+                        <div class="absolute bottom-0 right-1 h-3.5 w-3.5 rounded-full bg-green-500 border-2 border-[#FFF7ED]"></div>
+                    {/if}
+                </button>
+
+                <!-- STATUS POPUP -->
+                {#if activePopup}
+                    <div transition:fly={{y: -10, duration: 250}} class="absolute -bottom-11 right-0 bg-gray-900/95 backdrop-blur-md text-white text-[11px] px-3.5 py-2 rounded-full whitespace-nowrap shadow-xl z-50 flex items-center gap-2 font-bold tracking-wide border border-white/10 pointer-events-none">
+                        {#if activePopup === 'me'}
+                            <span class="relative flex h-2 w-2">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            </span>
+                            Online
+                        {:else if activePopup === 'partner'}
+                            {#if isPartnerOnline}
+                                <span class="relative flex h-2 w-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                </span>
+                                Online
+                            {:else}
+                                <span class="h-2 w-2 rounded-full bg-gray-400"></span>
+                                {formatPartnerStatus()}
+                            {/if}
+                        {/if}
+                    </div>
+                {/if}
             </div>
         {/snippet}
     </PageHeader>

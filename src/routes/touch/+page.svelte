@@ -1,7 +1,9 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import { resolve } from '$app/paths';
     import { browser } from '$app/environment';
+    import type { RealtimeChannel } from '@supabase/supabase-js';
     
     import { authStore } from '$lib/stores/auth.store.svelte';
     import { coupleStore } from '$lib/stores/couple.store.svelte';
@@ -13,10 +15,15 @@
 
     let myId = $derived(authStore.user?.id);
     let coupleId = $derived(coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id);
+    let isPartnerOnline = $derived(coupleStore.isPartnerOnline);
 
-    let isConnected = $state(false);
+    let isRealtimeSubscribed = $state(false);
     let connectionError = $state('');
-    let isChannelInitialized = false;
+    let touchChannel: RealtimeChannel | null = null;
+    let touchChannelKey: string | null = null;
+    let touchChannelWatcher: ReturnType<typeof setInterval> | null = null;
+
+    let canTouch = $derived(isRealtimeSubscribed && isPartnerOnline);
 
     interface FloatingHeart { id: number; x: number; size: number; isFromPartner: boolean; combo: number; }
     let floatingHearts = $state<FloatingHeart[]>([]);
@@ -25,28 +32,54 @@
     let localComboCount = $state(0);
     let comboTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    $effect(() => {
+    function teardownTouchChannel() {
+        if (touchChannel) {
+            supabase.removeChannel(touchChannel);
+            touchChannel = null;
+        }
+
+        touchChannelKey = null;
+        isRealtimeSubscribed = false;
+    }
+
+    function ensureTouchChannel() {
         if (!browser) return;
 
-        if (!authStore.isAuthenticated) { goto(resolve('/login')); return; }
-        if (!coupleStore.isActive) { goto(resolve('/join-couple')); return; }
+        if (!authStore.isAuthenticated) {
+            teardownTouchChannel();
+            goto(resolve('/login'));
+            return;
+        }
+
+        if (!coupleStore.isActive) {
+            teardownTouchChannel();
+            goto(resolve('/join-couple'));
+            return;
+        }
 
         if (!coupleId || !myId) {
-            return; 
+            teardownTouchChannel();
+            return;
         }
-        
-        if (isChannelInitialized) return;
-        isChannelInitialized = true;
 
-        const roomName = `touches_${coupleId}`;
+        const nextChannelKey = `${coupleId}:${myId}`;
+        if (touchChannel && touchChannelKey === nextChannelKey) {
+            return;
+        }
 
-        const newChannel = supabase.channel(roomName)
+        teardownTouchChannel();
+        touchChannelKey = nextChannelKey;
+        connectionError = '';
+
+        const roomName = `touch_page_${coupleId}_${myId}`;
+
+        touchChannel = supabase.channel(roomName)
             .on(
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'couple_touches', filter: `couple_id=eq.${coupleId}` },
                 (payload) => {
                     const data = payload.new;
-                    
+
                     if (data.sender_id !== myId) {
                         triggerPartnerTouch(data.pos_x, data.combo_count);
                     }
@@ -54,20 +87,32 @@
             )
             .subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
-                    isConnected = true;
+                    isRealtimeSubscribed = true;
                     connectionError = '';
                 } else if (status === 'CHANNEL_ERROR') {
-                    isConnected = false;
+                    isRealtimeSubscribed = false;
                     connectionError = 'Realtime rejected. Enable Replication in Supabase.';
                 } else if (status === 'TIMED_OUT') {
-                    isConnected = false;
+                    isRealtimeSubscribed = false;
                     connectionError = 'Connection Timeout.';
                 }
             });
+    }
+
+    onMount(() => {
+        ensureTouchChannel();
+
+        if (!touchChannelWatcher) {
+            touchChannelWatcher = setInterval(ensureTouchChannel, 1000);
+        }
+
         return () => {
-            if (newChannel) newChannel.unsubscribe();
-            isConnected = false;
-            isChannelInitialized = false;
+            if (touchChannelWatcher) {
+                clearInterval(touchChannelWatcher);
+                touchChannelWatcher = null;
+            }
+
+            teardownTouchChannel();
         };
     });
 
@@ -89,7 +134,7 @@
     }
 
     async function handleInteraction(event: MouseEvent | TouchEvent) {
-        if (!isConnected) {
+        if (!canTouch) {
             return;
         }
 
@@ -127,7 +172,7 @@
         triggerHaptic('light');
         spawnFloatingHeart(false, posX, currentCombo);
 
-        await supabase.from('couple_touches').insert([{ 
+        const { error } = await supabase.from('couple_touches').insert([{ 
             couple_id: coupleId, 
             sender_id: myId,
             pos_x: posX,
@@ -135,6 +180,10 @@
             combo_count: currentCombo,
             is_long_press: false
         }]);
+
+        if (error) {
+            connectionError = 'Touch sync failed. Please retry.';
+        }
     }
 
     function triggerPartnerTouch(partnerPosX: number, combo: number) {
@@ -146,7 +195,7 @@
 
 <div class="min-h-screen bg-[#0B0F19] text-white selection:bg-rose-500/30 font-sans relative overflow-hidden flex flex-col">
     
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-150 w-150 rounded-full blur-[120px] pointer-events-none transition-all duration-1000 {isConnected ? 'bg-rose-500/10 opacity-100' : 'bg-white/5 opacity-30'} z-0"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-150 w-150 rounded-full blur-[120px] pointer-events-none transition-all duration-1000 {canTouch ? 'bg-rose-500/10 opacity-100' : 'bg-white/5 opacity-30'} z-0"></div>
 
     <header class="relative z-40 px-6 pt-12 pb-4 flex items-center justify-between">
         <a aria-label="Back to dashboard" href={resolve('/dashboard')} class="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/70 transition-all hover:bg-white/10 hover:text-white active:scale-90 backdrop-blur-md">
@@ -154,17 +203,19 @@
         </a>
         <div class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 backdrop-blur-md border border-white/5">
             <span class="relative flex h-2 w-2">
-                {#if isConnected}
+                {#if canTouch}
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                 {:else if connectionError}
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                {:else if isRealtimeSubscribed && !isPartnerOnline}
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-slate-400"></span>
                 {:else}
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500 animate-pulse"></span>
                 {/if}
             </span>
-            <span class="text-[10px] font-black uppercase tracking-widest {isConnected ? 'text-rose-400' : connectionError ? 'text-red-400' : 'text-yellow-400'}">
-                {isConnected ? 'Connected' : connectionError ? 'Error' : 'Connecting...'}
+            <span class="text-[10px] font-black uppercase tracking-widest {canTouch ? 'text-rose-400' : connectionError ? 'text-red-400' : isRealtimeSubscribed && !isPartnerOnline ? 'text-slate-400' : 'text-yellow-400'}">
+                {canTouch ? 'Connected' : connectionError ? 'Error' : isRealtimeSubscribed && !isPartnerOnline ? 'Partner Offline' : 'Syncing Presence...'}
             </span>
         </div>
     </header>
@@ -175,7 +226,7 @@
         
         <FloatingHearts hearts={floatingHearts} />
 
-        <TouchButton {isConnected} onInteraction={handleInteraction} />
+        <TouchButton isConnected={canTouch} onInteraction={handleInteraction} />
         
         {#if connectionError}
             <div class="mt-12 px-5 py-2.5 rounded-full bg-red-500/10 border border-red-500/20 backdrop-blur-md relative z-20">
@@ -185,7 +236,7 @@
             </div>
         {:else}
             <p class="mt-16 text-[12px] font-bold text-white/30 text-center tracking-widest uppercase transition-opacity duration-500 relative z-20">
-                {isConnected ? 'Tap anywhere on the glass to send love' : 'Syncing with database...'}
+                {canTouch ? 'Tap anywhere on the glass to send love' : isRealtimeSubscribed ? 'Waiting for partner to come online...' : 'Syncing with database...'}
             </p>
         {/if}
 

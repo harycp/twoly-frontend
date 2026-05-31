@@ -19,7 +19,6 @@ export const authService = {
                 user: freshUser
             };
         } catch {
-            // Keep login successful even if profile refresh fails temporarily.
             return response;
         }
     },
@@ -51,6 +50,14 @@ export const authService = {
         authStore.updateUser(user);
         
         return user;
+    },
+
+    async updatePresence(): Promise<void> {
+        try {
+            await apiService.put('/users/presence', {}, { requiresAuth: true, keepalive: true });
+        } catch (error) {
+            console.error('[Auth Service] Failed to update presence', error);
+        }
     },
 
     logout() {

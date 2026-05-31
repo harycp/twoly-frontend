@@ -3,6 +3,7 @@
     import { resolve } from '$app/paths';
     import { browser } from '$app/environment';
     import { uiStore } from '$lib/stores/ui.store.svelte';
+    import { cubicOut } from 'svelte/easing';
 
     const navItems = [
         { name: 'Home', path: '/dashboard', icon: 'home' },
@@ -14,6 +15,8 @@
 
     let lastScrollY = $state(0);
     let isHiddenByScroll = $state(false);
+    let partnerTouchBursts = $derived(uiStore.partnerTouchBursts);
+    let hasPartnerTouchBurst = $derived(partnerTouchBursts.length > 0);
 
     function handleScroll() {
         if (!browser) return;
@@ -35,6 +38,41 @@
     }
 
     let finalIsHidden = $derived(uiStore.isNavHidden || isHiddenByScroll);
+
+    // Animasi cantik & organik khas Svelte native, tanpa CSS @keyframes!
+    function heartBurst(node: Element, params: { x: number, scale: number, delayMs: number }) {
+        return {
+            delay: params.delayMs,
+            duration: 2500,
+            easing: cubicOut,
+            css: (t: number) => {
+                // Mengatur Opacity: Muncul cepat di awal (0-10%), lalu perlahan pudar di akhir (60-100%)
+                let opacity: number;
+                if (t < 0.1) opacity = t * 10;
+                else if (t > 0.6) opacity = 1 - ((t - 0.6) / 0.4);
+                else opacity = 1;
+
+                // Mengatur pergerakan Y ke atas
+                const y = t * 160;
+                
+                // Pergerakan X (melebar dari tengah)
+                const currentX = params.x * (0.2 + t * 0.8);
+                
+                // Efek memantul (popping) saat muncul
+                const scaleFactor = t < 0.2 
+                    ? (t * 5) * 1.2 * params.scale 
+                    : (1.2 - (t - 0.2) * 0.25) * params.scale;
+
+                // Efek ayunan (sway/rotate) kekanan dan kekiri layaknya balon melayang
+                const rot = Math.sin(t * Math.PI * 3) * 15 * (params.x > 0 ? 1 : -1);
+
+                return `
+                    opacity: ${opacity};
+                    transform: translate(calc(-50% + ${currentX}px), -${y}px) scale(${scaleFactor}) rotate(${rot}deg);
+                `;
+            }
+        };
+    }
 </script>
 
 <svelte:window onscroll={handleScroll} />
@@ -102,16 +140,29 @@
             aria-label="Realtime Touch"
             class="absolute left-1/2 -top-6 flex h-19.5 w-19.5 -translate-x-1/2 items-center justify-center rounded-full border-[6px] border-[#FFF7ED] bg-linear-to-tr from-[#FDA4AF] to-[#F8B4C8] text-white shadow-[0_12px_24px_-6px_rgba(253,164,175,0.6)] outline-none transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-105 hover:shadow-[0_16px_32px_-6px_rgba(253,164,175,0.7)] active:scale-95"
         >
+            {#if hasPartnerTouchBurst}
+                <div class="pointer-events-none absolute inset-0 overflow-visible">
+                    {#each partnerTouchBursts as burst (burst.id)}
+                        <!-- Murni memanggil transition Svelte custom di sini -->
+                        <span
+                            class="absolute left-1/2 top-1/2"
+                            in:heartBurst={{ x: burst.offsetX, scale: burst.scale, delayMs: burst.delayMs }}
+                        >
+                            <svg class="h-6 w-6 text-rose-500 drop-shadow-[0_0_12px_rgba(244,63,94,0.8)]" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                            </svg>
+                        </span>
+                    {/each}
+                </div>
+            {/if}
+
             <svg class="h-8 w-8 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
             </svg>
+            {#if hasPartnerTouchBurst}
+                <span class="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-rose-400 shadow-[0_0_0_0_rgba(251,113,133,0.45)] animate-pulse"></span>
+            {/if}
         </a>
 
     </div>
 </nav>
-
-<style>
-    :global(html) {
-        scroll-behavior: smooth;
-    }
-</style>

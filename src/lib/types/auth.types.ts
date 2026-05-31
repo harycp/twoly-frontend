@@ -4,6 +4,7 @@ export interface User {
     username: string;
     email: string;
     avatar_url?: string | null;
+    last_seen?: string | null;
 }
 
 export interface AuthResponse {
