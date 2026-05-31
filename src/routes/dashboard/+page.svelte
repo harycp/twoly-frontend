@@ -11,10 +11,12 @@
     import { memoryService } from '$lib/services/memory.service';
     import { datePlanService } from '$lib/services/datePlan.service';
     import { loveNoteService } from '$lib/services/loveNote.service'; 
+    import { supabase } from '$lib/services/supabase.service';
     
     import MobileShell from '$lib/components/layout/MobileShell.svelte';
     import PageHeader from '$lib/components/layout/PageHeader.svelte';
     import MemoryCover from '$lib/components/memories/MemoryCover.svelte'; 
+    import TouchStreakRibbon from '$lib/components/dashboard/TouchStreakRibbon.svelte';
     import logo from '$lib/assets/logos/twoly.webp';
     
     onMount(() => {
@@ -128,6 +130,34 @@
         queryFn: () => loveNoteService.getLoveNotes()
     }));
 
+    interface TouchEntry {
+        created_at: string;
+        sender_id: string;
+    }
+
+    const touchStreakQuery = createQuery(() => ({
+        queryKey: ['touch-streak', coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id],
+        enabled: !!(coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id),
+        queryFn: async () => {
+            const coupleId = coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id;
+
+            if (!coupleId) return [] as TouchEntry[];
+
+            const { data, error } = await supabase
+                .from('couple_touches')
+                .select('created_at, sender_id')
+                .eq('couple_id', coupleId)
+                .order('created_at', { ascending: false })
+                .limit(180);
+
+            if (error) {
+                throw error;
+            }
+
+            return (data ?? []) as TouchEntry[];
+        }
+    }));
+
     let recentMemories = $derived(memoriesQuery.data?.slice(0, 4) || []);
     let upcomingDates = $derived(datesQuery.data || []);
     
@@ -146,6 +176,39 @@
     let lockedNotesCount = $derived.by(() => {
         const notes = notesQuery.data || [];
         return notes.filter(n => !n.is_opened && n.receiver_id === myId).length;
+    });
+
+    function toDateKey(value: string | Date) {
+        const date = value instanceof Date ? value : new Date(value);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+    let touchStreak = $derived.by(() => {
+        const touches = touchStreakQuery.data || [];
+
+        if (touches.length === 0) return 0;
+
+        const uniqueDays = new Set(touches.map((touch) => toDateKey(touch.created_at)));
+        const today = new SvelteDate();
+        today.setHours(0, 0, 0, 0);
+
+        if (!uniqueDays.has(toDateKey(today))) {
+            return 0;
+        }
+
+        let streak = 0;
+        const cursor = new SvelteDate(today);
+
+        while (uniqueDays.has(toDateKey(cursor))) {
+            streak += 1;
+            cursor.setDate(cursor.getDate() - 1);
+        }
+
+        return streak;
     });
 
     const formatDateClean = (dateString: string) => {
@@ -268,6 +331,22 @@
                 <span class="text-[11px] font-black text-gray-500 uppercase tracking-widest group-hover:text-gray-900 transition-colors">Gallery</span>
             </a>
         </div>
+
+        <!-- TOUCH RHYTHM SECTION -->
+        <section class="pt-1">
+            <div class="mb-4 flex items-end justify-between px-1">
+                <div>
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight">Touch rhythm</h2>
+                    <p class="text-[12px] font-black text-gray-400 mt-1 uppercase tracking-[0.15em]">Keep the chain alive</p>
+                </div>
+                <div class="hidden sm:flex items-center gap-2 rounded-full bg-white/70 border border-white px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 shadow-sm">
+                    <span class="h-2 w-2 rounded-full bg-[#FB7185]"></span>
+                    Live streak
+                </div>
+            </div>
+
+            <TouchStreakRibbon streak={touchStreak} />
+        </section>
 
         <!-- WIDGET ROW: Smart Blocks -->
         <div class="grid grid-cols-2 gap-4">
