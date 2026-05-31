@@ -42,7 +42,7 @@
             <p class="text-base font-medium text-gray-500">Start documenting your journey together</p>
         </div>
 
-        <div class="rounded-[32px] bg-white/70 backdrop-blur-xl p-8 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.05)] border border-white">
+        <div class="rounded-4xl bg-white/70 backdrop-blur-xl p-8 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.05)] border border-white">
             {#if errorMessage}
                 <div class="mb-6 rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-600 border border-red-100">
                     {errorMessage}

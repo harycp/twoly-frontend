@@ -88,15 +88,15 @@
 
         {#if notesQuery.isPending}
             <div class="space-y-4 pt-2">
-                <div class="animate-pulse h-24 w-full rounded-[24px] bg-white/50 border border-gray-100"></div>
-                <div class="animate-pulse h-24 w-full rounded-[24px] bg-white/50 border border-gray-100"></div>
+                <div class="animate-pulse h-24 w-full rounded-3xl bg-white/50 border border-gray-100"></div>
+                <div class="animate-pulse h-24 w-full rounded-3xl bg-white/50 border border-gray-100"></div>
             </div>
         {:else}
             <!-- DAFTAR PESAN DITERIMA -->
             {#if currentTab === 'received'}
                 {#if receivedNotes.length === 0}
                     <div class="flex flex-col items-center justify-center py-16 px-6 text-center opacity-80">
-                        <div class="h-16 w-16 mb-4 rounded-[20px] bg-[#F8B4C8]/20 flex items-center justify-center text-[#FDA4AF] rotate-[-6deg]">
+                        <div class="h-16 w-16 mb-4 rounded-[20px] bg-[#F8B4C8]/20 flex items-center justify-center text-[#FDA4AF] -rotate-6">
                             <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5M10 12l2.25 1.5M14 12l-2.25 1.5"/></svg>
                         </div>
                         <h3 class="text-lg font-black text-gray-900 tracking-tight">Mailbox Empty</h3>
@@ -107,7 +107,7 @@
                         {#each receivedNotes as note (note.id)}
                             {@const locked = isLocked(note.unlock_at?.toString())}
                             
-                            <div class="relative overflow-hidden rounded-[28px] p-5 shadow-sm border transition-all duration-300 {note.is_opened ? 'bg-white/60 backdrop-blur-xl border-white hover:bg-white/80' : 'bg-gradient-to-br from-[#FDA4AF] to-[#F8B4C8] border-transparent text-white shadow-[0_8px_20px_-6px_rgba(253,164,175,0.4)]'}">
+                            <div class="relative overflow-hidden rounded-[28px] p-5 shadow-sm border transition-all duration-300 {note.is_opened ? 'bg-white/60 backdrop-blur-xl border-white hover:bg-white/80' : 'bg-linear-to-br from-[#FDA4AF] to-[#F8B4C8] border-transparent text-white shadow-[0_8px_20px_-6px_rgba(253,164,175,0.4)]'}">
                                 
                                 <div class="flex items-start justify-between gap-4 mb-3">
                                     <div class="flex items-center gap-2">
@@ -162,7 +162,7 @@
                 {:else}
                     <div class="space-y-4 pt-2">
                         {#each sentNotes as note (note.id)}
-                            <div class="relative overflow-hidden rounded-[24px] bg-white/40 backdrop-blur-xl p-5 shadow-sm border border-white/60">
+                            <div class="relative overflow-hidden rounded-3xl bg-white/40 backdrop-blur-xl p-5 shadow-sm border border-white/60">
                                 <div class="flex items-start justify-between mb-2">
                                     <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                                         Status: <span class={note.is_opened ? 'text-green-500' : 'text-orange-400'}>{note.is_opened ? 'Read' : 'Unread'}</span>
@@ -179,7 +179,7 @@
                                     {/if}
                                     <DeleteButton 
                                         label="" 
-                                        class="!h-8 !w-8 !p-0 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full"
+                                        class="h-8! w-8! p-0! bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full"
                                         onDelete={() => handleDeleteNote(note.id)} 
                                     />
                                 </div>

@@ -45,14 +45,14 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div 
-        class="group relative flex min-h-[56px] w-full flex-wrap items-center gap-2.5 rounded-[24px] border border-white/60 bg-white/40 p-3.5 backdrop-blur-xl shadow-[0_4px_20px_-8px_rgba(0,0,0,0.03)] transition-all duration-300 focus-within:border-[#FDA4AF] focus-within:bg-white/70 focus-within:ring-4 focus-within:ring-[#FDA4AF]/15 cursor-text"
+        class="group relative flex min-h-14 w-full flex-wrap items-center gap-2.5 rounded-3xl border border-white/60 bg-white/40 p-3.5 backdrop-blur-xl shadow-[0_4px_20px_-8px_rgba(0,0,0,0.03)] transition-all duration-300 focus-within:border-[#FDA4AF] focus-within:bg-white/70 focus-within:ring-4 focus-within:ring-[#FDA4AF]/15 cursor-text"
         onclick={() => inputRef?.focus()}
     >
         
         <!-- Render Tags sebagai Pil Menggemaskan (Bubbly Pills) -->
         {#if tags.length > 0}
             {#each tags as tag (tag)}
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FDA4AF] to-[#F8B4C8] px-3.5 py-1.5 text-[12px] font-black tracking-wide text-white shadow-[0_4px_10px_-2px_rgba(253,164,175,0.5)] transition-transform active:scale-95">
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-[#FDA4AF] to-[#F8B4C8] px-3.5 py-1.5 text-[12px] font-black tracking-wide text-white shadow-[0_4px_10px_-2px_rgba(253,164,175,0.5)] transition-transform active:scale-95">
                     #{tag}
                     <button 
                         type="button" 
@@ -74,7 +74,7 @@
             placeholder={tags.length === 0 ? "Type and press enter..." : "Add more..."}
             bind:value={currentTag}
             onkeydown={handleKeydown}
-            class="min-w-[120px] flex-1 border-0 border-none bg-transparent p-0 text-[15px] font-semibold text-gray-900 placeholder:text-gray-400 outline-none focus:border-transparent focus:outline-none focus:ring-0"
+            class="min-w-30 flex-1 border-0 border-none bg-transparent p-0 text-[15px] font-semibold text-gray-900 placeholder:text-gray-400 outline-none focus:border-transparent focus:outline-none focus:ring-0"
         />
     </div>
 

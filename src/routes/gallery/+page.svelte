@@ -146,7 +146,7 @@
 
     <main class="min-h-screen pb-40">
         {#if galleryQuery.isPending}
-            <div class="grid grid-cols-4 gap-[2px] pt-[2px]">
+            <div class="grid grid-cols-4 gap-0.5 pt-0.5">
                 {#each Array.from({ length: 24 }, (_, idx) => idx) as idx (idx)}
                     <div class="animate-pulse aspect-square bg-white/50 border border-gray-100"></div>
                 {/each}
@@ -154,11 +154,11 @@
             
         {:else if filteredPhotos.length === 0}
             <div class="flex flex-col items-center justify-center py-20 px-6 text-center">
-                <div class="h-20 w-20 mb-5 rounded-[24px] bg-[#F8B4C8]/20 border border-white flex items-center justify-center text-[#FDA4AF] shadow-inner rotate-3">
+                <div class="h-20 w-20 mb-5 rounded-3xl bg-[#F8B4C8]/20 border border-white flex items-center justify-center text-[#FDA4AF] shadow-inner rotate-3">
                     <svg class="h-9 w-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 </div>
                 <h3 class="text-xl font-black text-gray-900 tracking-tight">Empty Frame</h3>
-                <p class="text-[13px] font-medium text-gray-500 mt-2 max-w-[240px]">
+                <p class="text-[13px] font-medium text-gray-500 mt-2 max-w-60">
                     {searchQuery ? "No matches found for your search." : "No pictures saved yet. Go upload some in your Memories!"}
                 </p>
             </div>
@@ -189,7 +189,7 @@
                             <div class="grid grid-cols-3 gap-2">
                                 {#each photosList.slice(0, 9) as photo (photo.id)}
                                     {@const realIndex = filteredPhotos.findIndex(p => p.id === photo.id)}
-                                    <button onclick={() => openViewer(realIndex)} class="relative aspect-square bg-gray-100 rounded-[16px] overflow-hidden shadow-sm border border-white/60 active:scale-95 transition-transform group">
+                                    <button onclick={() => openViewer(realIndex)} class="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden shadow-sm border border-white/60 active:scale-95 transition-transform group">
                                         <img src={photo.photo_url} alt="Month item" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
                                     </button>
                                 {/each}
@@ -212,7 +212,7 @@
                                 {/if}
                             </div>
                             
-                            <div class="grid grid-cols-4 gap-[2px]">
+                            <div class="grid grid-cols-4 gap-0.5">
                                 {#each photosList as photo, i (photo.id)}
                                     {@const realIndex = filteredPhotos.findIndex(p => p.id === photo.id)}
                                     <button 
@@ -228,7 +228,7 @@
                 </div>
 
             {:else}
-                <div class="grid grid-cols-4 gap-[2px] pt-[2px]">
+                <div class="grid grid-cols-4 gap-0.5 pt-0.5">
                     {#each filteredPhotos as photo, i (photo.id)}
                         <button 
                             type="button"

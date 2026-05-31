@@ -39,9 +39,11 @@
 
 <svelte:window onscroll={handleScroll} />
 
-<nav class="fixed bottom-8 left-0 right-0 z-50 mx-auto w-[92%] max-w-[380px] transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] {finalIsHidden ? 'translate-y-[150%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}">
+<nav
+    class="fixed bottom-8 left-0 right-0 z-50 mx-auto w-[92%] max-w-95 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] {finalIsHidden ? 'translate-y-[150%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}"
+>
     
-    <div class="relative flex h-[72px] w-full items-center justify-between rounded-[36px] border border-white/80 bg-white/85 shadow-[0_16px_40px_-10px_rgba(253,164,175,0.2)] backdrop-blur-2xl">
+    <div class="relative flex h-18 w-full items-center justify-between rounded-[36px] border border-white/80 bg-white/85 shadow-[0_16px_40px_-10px_rgba(253,164,175,0.2)] backdrop-blur-2xl">
         
         <div class="grid h-full w-full grid-cols-5 items-center justify-items-center">
             
@@ -56,7 +58,7 @@
                         aria-label={item.name}
                         class="group relative flex h-full w-full flex-col items-center justify-center outline-none"
                     >
-                        <div class="flex h-[48px] w-[48px] items-center justify-center rounded-full transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-90 {isActive ? 'bg-[#FDA4AF]/20 text-[#FDA4AF]' : 'text-gray-400 hover:bg-gray-100/80 hover:text-gray-600'}">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-full transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-90 {isActive ? 'bg-[#FDA4AF]/20 text-[#FDA4AF]' : 'text-gray-400 hover:bg-gray-100/80 hover:text-gray-600'}">
                             
                             {#if item.icon === 'home'}
                                 <svg class="h-6 w-6 transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill={isActive ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
@@ -67,7 +69,7 @@
                                     {/if}
                                 </svg>
                             {:else if item.icon === 'polaroid'}
-                                <svg class="h-[22px] w-[22px] transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill={isActive ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-5.5 w-5.5 transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill={isActive ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
                                     {#if isActive}
                                         <path d="M4 5a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V7a2 2 0 00-2-2H4zm0 2h16v10H4V7zm3 2a2 2 0 100 4 2 2 0 000-4zm-3 7l4-4 4 4v1H4v-1zm9-3l3-3 4 4v2h-7v-3z" clip-rule="evenodd" fill-rule="evenodd"/>
                                     {:else}
@@ -75,7 +77,7 @@
                                     {/if}
                                 </svg>
                             {:else if item.icon === 'calendar'}
-                                <svg class="h-[22px] w-[22px] transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill={isActive ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-5.5 w-5.5 transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill={isActive ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
                                     {#if isActive}
                                         <path d="M19 4h-2V3a1 1 0 10-2 0v1H9V3a1 1 0 00-2 0v1H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 16H5V10h14v10z"/>
                                     {:else}
@@ -89,7 +91,7 @@
                             {/if}
                         </div>
                         
-                        <div class="absolute bottom-[6px] h-[5px] w-[5px] rounded-full bg-[#FDA4AF] transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] {isActive ? 'scale-100 opacity-100 translate-y-0' : 'scale-0 opacity-0 translate-y-2'}"></div>
+                        <div class="absolute bottom-1.5 h-1.25 w-1.25 rounded-full bg-[#FDA4AF] transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] {isActive ? 'scale-100 opacity-100 translate-y-0' : 'scale-0 opacity-0 translate-y-2'}"></div>
                     </a>
                 {/if}
             {/each}
@@ -98,9 +100,9 @@
         <a 
             href={resolve('/touch')} 
             aria-label="Realtime Touch"
-            class="absolute left-1/2 -top-[24px] flex h-[78px] w-[78px] -translate-x-1/2 items-center justify-center rounded-full border-[6px] border-[#FFF7ED] bg-gradient-to-tr from-[#FDA4AF] to-[#F8B4C8] text-white shadow-[0_12px_24px_-6px_rgba(253,164,175,0.6)] outline-none transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-105 hover:shadow-[0_16px_32px_-6px_rgba(253,164,175,0.7)] active:scale-95"
+            class="absolute left-1/2 -top-6 flex h-19.5 w-19.5 -translate-x-1/2 items-center justify-center rounded-full border-[6px] border-[#FFF7ED] bg-linear-to-tr from-[#FDA4AF] to-[#F8B4C8] text-white shadow-[0_12px_24px_-6px_rgba(253,164,175,0.6)] outline-none transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-105 hover:shadow-[0_16px_32px_-6px_rgba(253,164,175,0.7)] active:scale-95"
         >
-            <svg class="h-8 w-8 mt-[2px]" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="h-8 w-8 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
             </svg>
         </a>

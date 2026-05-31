@@ -350,21 +350,21 @@
 
             {#if photosQuery.isPending}
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="animate-pulse aspect-[3/4] rounded-[24px] bg-white/50 border border-gray-100 shadow-sm"></div>
-                    <div class="animate-pulse aspect-[3/4] rounded-[24px] bg-white/50 border border-gray-100 shadow-sm"></div>
+                    <div class="animate-pulse aspect-3/4 rounded-3xl bg-white/50 border border-gray-100 shadow-sm"></div>
+                    <div class="animate-pulse aspect-3/4 rounded-3xl bg-white/50 border border-gray-100 shadow-sm"></div>
                 </div>
             {:else if photos.length === 0}
                 <div class="flex flex-col items-center justify-center py-12 px-6 text-center opacity-80">
-                    <div class="h-16 w-16 mb-4 rounded-[20px] bg-[#DDD6FE]/30 flex items-center justify-center text-[#8B5CF6] rotate-[-6deg]">
+                    <div class="h-16 w-16 mb-4 rounded-[20px] bg-[#DDD6FE]/30 flex items-center justify-center text-[#8B5CF6] -rotate-6">
                         <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
                     <p class="text-lg font-black text-gray-800 tracking-tight">No photos yet</p>
-                    <p class="text-sm font-medium text-gray-500 mt-1 max-w-[200px]">Upload memories to complete this story.</p>
+                    <p class="text-sm font-medium text-gray-500 mt-1 max-w-50">Upload memories to complete this story.</p>
                 </div>
             {:else}
                 <div class="grid grid-cols-2 gap-4">
                     {#each photos as photo, i (photo.id)}
-                        <div class="group relative aspect-[3/4] overflow-hidden rounded-[24px] bg-gray-100 shadow-sm border border-white/60">
+                        <div class="group relative aspect-3/4 overflow-hidden rounded-3xl bg-gray-100 shadow-sm border border-white/60">
                             <!-- Tombol Viewer (Normal) atau Tombol Pasif (Edit) -->
                             <button 
                                 type="button"

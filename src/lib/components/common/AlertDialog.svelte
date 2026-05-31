@@ -35,8 +35,14 @@
 </script>
 
 {#if isOpen}
-    <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-        <div transition:scale={{ duration: 250, start: 0.95 }} class="w-full max-w-[280px] rounded-[18px] bg-white/80 backdrop-blur-xl shadow-2xl flex flex-col overflow-hidden border border-white/50">
+    <div
+        transition:fade={{ duration: 200 }}
+        class="fixed inset-0 z-999999 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+    >
+        <div
+            transition:scale={{ duration: 250, start: 0.95 }}
+            class="w-full max-w-70 rounded-[18px] bg-white/80 backdrop-blur-xl shadow-2xl flex flex-col overflow-hidden border border-white/50"
+        >
             
             <div class="p-5 text-center flex flex-col items-center">
                 <h3 class="text-[17px] font-black tracking-tight text-gray-900 leading-tight">{title}</h3>

@@ -88,7 +88,7 @@
     <!-- Backdrop Layar Penuh Hitam Pekat (z-50 di sini cukup karena kita memakai Fixed di Parent Level) -->
     <div 
         transition:fade={{ duration: 300 }}
-        class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black"
+        class="fixed inset-0 z-9999 flex flex-col items-center justify-center bg-black"
     >
         <!-- Area Klik untuk Foto -->
         <button 
@@ -111,7 +111,7 @@
 
         <!-- TOP CONTROLS -->
         {#if showControls}
-            <div transition:fade={{ duration: 200 }} class="absolute top-0 left-0 right-0 z-10 p-6 bg-gradient-to-b from-black/80 to-transparent flex items-center justify-between">
+            <div transition:fade={{ duration: 200 }} class="absolute top-0 left-0 right-0 z-10 p-6 bg-linear-to-b from-black/80 to-transparent flex items-center justify-between">
                 <div class="flex flex-col">
                     {#if currentPhoto.memory_date}
                         <span class="text-[13px] font-bold text-white tracking-wide">
@@ -136,7 +136,7 @@
 
         <!-- BOTTOM CONTROLS -->
         {#if showControls}
-            <div transition:fade={{ duration: 200 }} class="absolute bottom-0 left-0 right-0 z-10 p-6 pt-16 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col gap-4">
+            <div transition:fade={{ duration: 200 }} class="absolute bottom-0 left-0 right-0 z-10 p-6 pt-16 bg-linear-to-t from-black/90 via-black/50 to-transparent flex flex-col gap-4">
                 <div class="flex items-end justify-between gap-4">
                     <div class="flex-1">
                         {#if currentPhoto.memory_title}

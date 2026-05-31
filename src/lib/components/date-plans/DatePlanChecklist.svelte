@@ -10,7 +10,7 @@
     let { id, label, isChecked, onToggle, onDelete }: Props = $props();
 </script>
 
-<div class="group relative flex items-center justify-between gap-4 rounded-[24px] bg-white/40 backdrop-blur-xl border border-white/60 p-4 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.02)] transition-all duration-300 hover:bg-white/60 {isChecked ? 'opacity-60' : ''}">
+<div class="group relative flex items-center justify-between gap-4 rounded-3xl bg-white/40 backdrop-blur-xl border border-white/60 p-4 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.02)] transition-all duration-300 hover:bg-white/60 {isChecked ? 'opacity-60' : ''}">
     
     <button 
         type="button" 

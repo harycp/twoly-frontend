@@ -34,14 +34,14 @@
 
     <div class="w-full max-w-md relative z-10">
         <div class="mb-10 text-center space-y-2">
-            <div class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-[32px] bg-white shadow-[0_8px_30px_-10px_rgba(248,180,200,0.5)] border border-gray-50 rotate-3 transition-transform duration-500 hover:rotate-0">
+            <div class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-4xl bg-white shadow-[0_8px_30px_-10px_rgba(248,180,200,0.5)] border border-gray-50 rotate-3 transition-transform duration-500 hover:rotate-0">
                 <img src={logo} alt="Twoly Logo" class="h-16 w-16 object-contain drop-shadow-sm" />
             </div>
             <h1 class="text-3xl font-black text-gray-900 tracking-tight">Welcome back</h1>
             <p class="text-base font-medium text-gray-500">Log in to your shared emotional space</p>
         </div>
 
-        <div class="rounded-[32px] bg-white/70 backdrop-blur-xl p-8 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.05)] border border-white">
+        <div class="rounded-4xl bg-white/70 backdrop-blur-xl p-8 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.05)] border border-white">
             {#if errorMessage}
                 <div class="mb-6 rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-600 border border-red-100">
                     {errorMessage}

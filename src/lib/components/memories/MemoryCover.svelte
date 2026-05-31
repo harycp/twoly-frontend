@@ -35,7 +35,7 @@
         <div class="absolute inset-0 bg-gray-200 animate-pulse"></div>
     {:else if photos.length === 0}
         <!-- FALLBACK GRADIENT (Jika belum ada foto) -->
-        <div class="absolute inset-0 bg-gradient-to-br transition-transform duration-1000 group-hover:scale-105
+        <div class="absolute inset-0 bg-linear-to-br transition-transform duration-1000 group-hover:scale-105
             {fallbackIndex % 3 === 0 ? 'from-[#FED7AA] to-[#F8B4C8]' : fallbackIndex % 3 === 1 ? 'from-[#DDD6FE] to-[#FDA4AF]' : 'from-[#F8B4C8] to-[#FFF7ED]'}">
         </div>
     {:else}

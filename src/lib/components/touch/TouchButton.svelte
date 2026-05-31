@@ -17,7 +17,7 @@
 >
     <div class="absolute inset-0 bg-rose-500 rounded-full blur-[60px] opacity-10 transition-opacity duration-500 group-hover:opacity-30 group-active:opacity-70"></div>
 
-    <div class="relative flex h-56 w-56 items-center justify-center rounded-full bg-gradient-to-br from-white/10 to-transparent backdrop-blur-[30px] border border-white/20 shadow-[inset_0_-20px_40px_rgba(0,0,0,0.5),0_20px_50px_-10px_rgba(0,0,0,0.8)] transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-active:scale-[0.85] group-active:shadow-[inset_0_-5px_20px_rgba(0,0,0,0.6),0_10px_20px_-10px_rgba(0,0,0,0.7)]">
+    <div class="relative flex h-56 w-56 items-center justify-center rounded-full bg-linear-to-br from-white/10 to-transparent backdrop-blur-[30px] border border-white/20 shadow-[inset_0_-20px_40px_rgba(0,0,0,0.5),0_20px_50px_-10px_rgba(0,0,0,0.8)] transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-active:scale-[0.85] group-active:shadow-[inset_0_-5px_20px_rgba(0,0,0,0.6),0_10px_20px_-10px_rgba(0,0,0,0.7)]">
 
         <div class="absolute inset-2 rounded-full border-t border-white/30 pointer-events-none"></div>
 

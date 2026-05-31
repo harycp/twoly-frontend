@@ -194,7 +194,7 @@
         {/if}
     </div>
 
-    <div class="relative w-full rounded-[24px] border border-white/60 bg-white/40 backdrop-blur-xl p-2 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.02)]">
+    <div class="relative w-full rounded-3xl border border-white/60 bg-white/40 backdrop-blur-xl p-2 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.02)]">
         <div class="h-56 w-full rounded-[18px] z-0 overflow-hidden relative" bind:this={mapElement}></div>
         
         <div class="mt-3 flex items-center justify-between px-2 pb-1">

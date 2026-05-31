@@ -59,8 +59,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </svelte:head>
 
-<div class="relative mt-2 w-full rounded-[24px] overflow-hidden shadow-[0_4px_20px_-8px_rgba(0,0,0,0.06)] border border-white/60 bg-white/40 p-2 backdrop-blur-xl">
-    <div class="h-44 w-full rounded-[16px] z-0 overflow-hidden" bind:this={mapElement}></div>
+<div class="relative mt-2 w-full rounded-3xl overflow-hidden shadow-[0_4px_20px_-8px_rgba(0,0,0,0.06)] border border-white/60 bg-white/40 p-2 backdrop-blur-xl">
+    <div class="h-44 w-full rounded-2xl z-0 overflow-hidden" bind:this={mapElement}></div>
 
     <div class="mt-3 flex items-center justify-between px-2 pb-1">
         <div class="flex-1 truncate pr-4">

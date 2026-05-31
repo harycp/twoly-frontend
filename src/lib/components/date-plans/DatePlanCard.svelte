@@ -26,7 +26,10 @@
     };
 </script>
 
-<a href={resolve('/date-plans/[id]', { id: plan.id })} class="flex items-center gap-5 rounded-[32px] bg-white/40 backdrop-blur-xl p-4 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.03)] border border-white/60 transition-all duration-300 ease-out active:scale-95 group hover:bg-white/60">
+<a
+    href={resolve('/date-plans/[id]', { id: plan.id })}
+    class="flex items-center gap-5 rounded-4xl bg-white/40 backdrop-blur-xl p-4 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.03)] border border-white/60 transition-all duration-300 ease-out active:scale-95 group hover:bg-white/60"
+>
     <!-- Calendar Box -->
     <div class="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-[20px] bg-white/60 text-gray-800 shadow-sm border border-white transition-colors duration-300 group-hover:bg-[#FED7AA]/20 group-hover:text-[#EA580C]">
         <span class="text-[10px] font-extrabold uppercase tracking-widest opacity-50">{dateInfo.monthStr}</span>

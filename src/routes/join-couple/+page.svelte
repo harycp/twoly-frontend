@@ -69,7 +69,7 @@
         {/if}
 
         {#if coupleStore.isPending && coupleStore.data}
-            <div class="rounded-[32px] bg-white p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] text-center border border-gray-50">
+            <div class="rounded-4xl bg-white p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] text-center border border-gray-50">
                 <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#F8B4C8]/20 text-3xl">
                     💌
                 </div>
@@ -88,7 +88,7 @@
             </div>
         {:else}
             <div class="space-y-6">
-                <div class="rounded-[32px] bg-white/70 backdrop-blur-xl p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-white">
+                <div class="rounded-4xl bg-white/70 backdrop-blur-xl p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-white">
                     <h2 class="mb-6 text-sm font-extrabold text-gray-800 tracking-tight">Option 1: I have a code</h2>
                     <form onsubmit={handleJoin} class="space-y-4">
                         <Input type="text" placeholder="Enter partner's code" bind:value={inviteCodeInput} class="uppercase" required />
@@ -102,7 +102,7 @@
                     <div class="flex-1 border-t border-gray-300"></div>
                 </div>
 
-                <div class="rounded-[32px] bg-white/70 backdrop-blur-xl p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-white">
+                <div class="rounded-4xl bg-white/70 backdrop-blur-xl p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04)] border border-white">
                     <h2 class="mb-2 text-sm font-extrabold text-gray-800 tracking-tight">Option 2: Create new code</h2>
                     <p class="mb-6 text-sm font-medium text-gray-500">Generate a unique code to share with your partner.</p>
                     <Button type="button" variant="secondary" class="w-full" onclick={handleCreateInvite} isLoading={isCreating}>

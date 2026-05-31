@@ -76,9 +76,9 @@
             </div>
 
             {#if eventsQuery.isPending}
-                <div class="animate-pulse h-24 w-full rounded-[24px] bg-white/50 border border-gray-100"></div>
+                <div class="animate-pulse h-24 w-full rounded-3xl bg-white/50 border border-gray-100"></div>
             {:else if selectedDayEvents.length === 0}
-                <div class="rounded-[32px] border border-dashed border-gray-200 py-10 text-center">
+                <div class="rounded-4xl border border-dashed border-gray-200 py-10 text-center">
                     <p class="text-[13px] font-bold text-gray-400">No moments planned for today.</p>
                 </div>
             {:else}

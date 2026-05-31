@@ -109,9 +109,9 @@
                     </div>
 
                     {#if calendarEventsQuery.isPending}
-                        <div class="animate-pulse h-24 w-full rounded-[24px] bg-white/50 border border-gray-100"></div>
+                        <div class="animate-pulse h-24 w-full rounded-3xl bg-white/50 border border-gray-100"></div>
                     {:else if selectedDayEvents.length === 0}
-                        <div class="rounded-[32px] border border-dashed border-gray-200 py-10 text-center">
+                        <div class="rounded-4xl border border-dashed border-gray-200 py-10 text-center">
                             <p class="text-[13px] font-bold text-gray-400">No moments planned for today.</p>
                         </div>
                     {:else}
@@ -168,16 +168,16 @@
             <section class="transition-opacity duration-300">
                 {#if plansQuery.isPending}
                     <div class="space-y-4">
-                        <div class="animate-pulse h-28 w-full rounded-[32px] bg-white/50 border border-gray-100 shadow-sm"></div>
-                        <div class="animate-pulse h-28 w-full rounded-[32px] bg-white/50 border border-gray-100 shadow-sm"></div>
+                        <div class="animate-pulse h-28 w-full rounded-4xl bg-white/50 border border-gray-100 shadow-sm"></div>
+                        <div class="animate-pulse h-28 w-full rounded-4xl bg-white/50 border border-gray-100 shadow-sm"></div>
                     </div>
                 {:else if plans.length === 0}
                     <div class="flex flex-col items-center justify-center mt-8 py-16 px-6 text-center opacity-80">
-                        <div class="h-20 w-20 mb-5 rounded-[24px] bg-[#FED7AA]/30 border border-white flex items-center justify-center text-[#EA580C] shadow-inner rotate-3">
+                        <div class="h-20 w-20 mb-5 rounded-3xl bg-[#FED7AA]/30 border border-white flex items-center justify-center text-[#EA580C] shadow-inner rotate-3">
                             <svg class="h-9 w-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                         <h2 class="text-xl font-black text-gray-900 tracking-tight mb-2">No {currentTab === 'planned' ? 'upcoming' : 'past'} dates</h2>
-                        <p class="text-[13.5px] font-medium text-gray-500 leading-relaxed max-w-[220px]">
+                        <p class="text-[13.5px] font-medium text-gray-500 leading-relaxed max-w-55">
                             {currentTab === 'planned' ? "Plan something special with your partner today!" : "You haven't completed any date plans yet."}
                         </p>
                     </div>

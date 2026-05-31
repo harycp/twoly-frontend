@@ -105,7 +105,7 @@
                     
                     <!-- HEATMAP / INDICATOR DOTS -->
                     {#if dayEvents.length > 0}
-                        <div class="absolute bottom-1.5 flex w-full justify-center gap-[3px] z-10">
+                            <div class="absolute bottom-1.5 flex w-full justify-center gap-0.75 z-10">
                             <!-- ESLint Key fix: (ev.id) -->
                             {#each dayEvents.slice(0, 3) as ev (ev.id)}
                                 <div class="h-1.5 w-1.5 rounded-full shadow-sm
@@ -120,18 +120,18 @@
 
                 <!-- TOOLTIP POPOVER CANGGIH: Muncul murni karena group-hover CSS, tanpa memicu event JS -->
                 {#if dayEvents.length > 0}
-                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-max max-w-[180px] pointer-events-none opacity-0 scale-95 transition-all duration-200 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-1 flex flex-col items-center drop-shadow-xl z-50">
-                        <div class="bg-gray-900/95 backdrop-blur-xl border border-gray-700 rounded-[16px] p-3 shadow-lg space-y-2 min-w-[130px]">
+                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-max max-w-45 pointer-events-none opacity-0 scale-95 transition-all duration-200 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-1 flex flex-col items-center drop-shadow-xl z-50">
+                        <div class="bg-gray-900/95 backdrop-blur-xl border border-gray-700 rounded-2xl p-3 shadow-lg space-y-2 min-w-32.5">
                             <!-- ESLint Key fix: (ev.id) -->
                             {#each dayEvents.slice(0, 4) as ev (ev.id)}
                                 <div class="flex items-start gap-2 text-left">
                                     <div class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full
                                         {ev.event_type === 'memory' ? 'bg-[#FDA4AF]' : 
-                                         ev.event_type === 'date_plan' ? 'bg-[#EA580C]' : 
-                                         ev.event_type === 'anniversary' ? 'bg-[#8B5CF6]' : 'bg-blue-400'}">
+                                        ev.event_type === 'date_plan' ? 'bg-[#EA580C]' : 
+                                        ev.event_type === 'anniversary' ? 'bg-[#8B5CF6]' : 'bg-blue-400'}">
                                     </div>
                                     <div class="flex flex-col">
-                                        <span class="text-[12px] font-bold text-white truncate max-w-[140px] leading-tight">{ev.title}</span>
+                                        <span class="text-[12px] font-bold text-white truncate max-w-35 leading-tight">{ev.title}</span>
                                     </div>
                                 </div>
                             {/each}

@@ -146,7 +146,7 @@
 
 <div class="min-h-screen bg-[#0B0F19] text-white selection:bg-rose-500/30 font-sans relative overflow-hidden flex flex-col">
     
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full blur-[120px] pointer-events-none transition-all duration-1000 {isConnected ? 'bg-rose-500/10 opacity-100' : 'bg-white/5 opacity-30'} z-0"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-150 w-150 rounded-full blur-[120px] pointer-events-none transition-all duration-1000 {isConnected ? 'bg-rose-500/10 opacity-100' : 'bg-white/5 opacity-30'} z-0"></div>
 
     <header class="relative z-40 px-6 pt-12 pb-4 flex items-center justify-between">
         <a aria-label="Back to dashboard" href={resolve('/dashboard')} class="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/70 transition-all hover:bg-white/10 hover:text-white active:scale-90 backdrop-blur-md">
