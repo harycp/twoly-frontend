@@ -23,6 +23,21 @@ export const authService = {
         }
     },
 
+    async googleLogin(idToken: string): Promise<AuthResponse> {
+        const response = await apiService.post<AuthResponse>('/auth/google', { id_token: idToken }, { requiresAuth: false });
+        authStore.login(response.access_token, response.user);
+
+        try {
+            const freshUser = await this.getMe();
+            return {
+                ...response,
+                user: freshUser
+            };
+        } catch {
+            return response;
+        }
+    },
+
     async getMe(): Promise<User> {
         const user = await apiService.get<User>('/auth/me');
         authStore.updateUser(user);

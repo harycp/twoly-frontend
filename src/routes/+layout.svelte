@@ -11,6 +11,7 @@
     import { coupleService } from '$lib/services/couple.service';
     import { coupleStore } from '$lib/stores/couple.store.svelte';
     import { uiStore } from '$lib/stores/ui.store.svelte';
+    import TouchStreakMilestoneModal from '$lib/components/dashboard/TouchStreakMilestoneModal.svelte';
     import { supabase } from '$lib/services/supabase.service';
 
     const queryClient = new QueryClient({
@@ -253,7 +254,7 @@
                 void triggerPresenceUpdate();
                 return;
             }
-
+            // layout returns children; modal rendered after main content
             void triggerCoupleRefresh();
             void syncPresenceChannel();
             refreshPartnerOnlineState();
@@ -337,5 +338,9 @@
 <div style="font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;" class="text-gray-900 bg-[#FFF7ED] min-h-screen selection:bg-[#F8B4C8] selection:text-white antialiased">
     <QueryClientProvider client={queryClient}>
         {@render children()}
+
+        {#if uiStore.milestonePopupData}
+            <TouchStreakMilestoneModal milestone={uiStore.milestonePopupData.milestone} onClose={() => uiStore.closeMilestone()} />
+        {/if}
     </QueryClientProvider>
 </div>

@@ -1,6 +1,8 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import { resolve } from '$app/paths';
+    import { browser } from '$app/environment';
     import { authService } from '$lib/services/auth.service';
     import Button from '$lib/components/common/Button.svelte';
     import Input from '$lib/components/common/Input.svelte';
@@ -11,6 +13,27 @@
     let password = $state('');
     let isLoading = $state(false);
     let errorMessage = $state('');
+
+    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+    // Mendefinisikan tipe data untuk response dari Google
+    interface GoogleCredentialResponse {
+        credential: string;
+        clientId?: string;
+        select_by?: string;
+    }
+
+    // Mendefinisikan struktur objek google yang ada di window
+    interface WindowWithGoogle extends Window {
+        google?: {
+            accounts: {
+                id: {
+                    initialize: (config: { client_id: string; callback: (res: GoogleCredentialResponse) => void }) => void;
+                    renderButton: (parent: HTMLElement, options: Record<string, string>) => void;
+                };
+            };
+        };
+    }
 
     async function handleLogin(event: SubmitEvent) {
         event.preventDefault();
@@ -26,6 +49,56 @@
             isLoading = false;
         }
     }
+
+    async function handleGoogleResponse(response: GoogleCredentialResponse) {
+        isLoading = true;
+        errorMessage = '';
+
+        try {
+            await authService.googleLogin(response.credential);
+            await goto(resolve('/dashboard'));
+        } catch (error: unknown) {
+            errorMessage = error instanceof Error ? error.message : 'Google login failed. Please try again.';
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    onMount(() => {
+        if (!browser || !googleClientId) return;
+
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+            const win = window as unknown as WindowWithGoogle;
+            const google = win.google;
+            
+            if (google) {
+                google.accounts.id.initialize({
+                    client_id: googleClientId,
+                    callback: handleGoogleResponse
+                });
+                
+                const container = document.getElementById("google-button-container");
+                if (container) {
+                    google.accounts.id.renderButton(
+                        container,
+                        { theme: "outline", size: "large", width: "100%", shape: "pill", text: "continue_with" }
+                    );
+                }
+            }
+        };
+        
+        document.body.appendChild(script);
+
+        return () => {
+            if (document.body.contains(script)) {
+                document.body.removeChild(script);
+            }
+        };
+    });
 </script>
 
 <div class="flex min-h-screen flex-col items-center justify-center bg-[#FFF7ED] p-6 relative overflow-hidden">
@@ -48,25 +121,36 @@
                 </div>
             {/if}
 
-            <form onsubmit={handleLogin} class="space-y-5">
-                <Input
-                    label="Email or Username"
-                    type="text"
-                    placeholder="Enter your email or username"
-                    bind:value={emailOrUsername}
-                    required
-                />
-                <Input
-                    label="Password"
-                    type="password"
-                    placeholder="Enter your password"
-                    bind:value={password}
-                    required
-                />
-                <div class="pt-4">
-                    <Button type="submit" class="w-full" {isLoading}>Log In</Button>
+            <div class="space-y-5">
+                <!-- Google OAuth Button Container -->
+                <div id="google-button-container" class="w-full flex justify-center min-h-[44px]"></div>
+
+                <div class="relative flex items-center py-1">
+                    <div class="flex-grow border-t border-gray-200"></div>
+                    <span class="shrink-0 px-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Or continue with email</span>
+                    <div class="flex-grow border-t border-gray-200"></div>
                 </div>
-            </form>
+
+                <form onsubmit={handleLogin} class="space-y-5">
+                    <Input
+                        label="Email or Username"
+                        type="text"
+                        placeholder="Enter your email or username"
+                        bind:value={emailOrUsername}
+                        required
+                    />
+                    <Input
+                        label="Password"
+                        type="password"
+                        placeholder="Enter your password"
+                        bind:value={password}
+                        required
+                    />
+                    <div class="pt-4">
+                        <Button type="submit" class="w-full" {isLoading}>Log In</Button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <div class="mt-8 text-center text-sm font-medium text-gray-500">

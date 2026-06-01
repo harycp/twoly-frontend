@@ -39,31 +39,25 @@
 
     let finalIsHidden = $derived(uiStore.isNavHidden || isHiddenByScroll);
 
-    // Animasi cantik & organik khas Svelte native, tanpa CSS @keyframes!
     function heartBurst(node: Element, params: { x: number, scale: number, delayMs: number }) {
         return {
             delay: params.delayMs,
             duration: 2500,
             easing: cubicOut,
             css: (t: number) => {
-                // Mengatur Opacity: Muncul cepat di awal (0-10%), lalu perlahan pudar di akhir (60-100%)
                 let opacity: number;
                 if (t < 0.1) opacity = t * 10;
                 else if (t > 0.6) opacity = 1 - ((t - 0.6) / 0.4);
                 else opacity = 1;
 
-                // Mengatur pergerakan Y ke atas
                 const y = t * 160;
                 
-                // Pergerakan X (melebar dari tengah)
                 const currentX = params.x * (0.2 + t * 0.8);
                 
-                // Efek memantul (popping) saat muncul
                 const scaleFactor = t < 0.2 
                     ? (t * 5) * 1.2 * params.scale 
                     : (1.2 - (t - 0.2) * 0.25) * params.scale;
 
-                // Efek ayunan (sway/rotate) kekanan dan kekiri layaknya balon melayang
                 const rot = Math.sin(t * Math.PI * 3) * 15 * (params.x > 0 ? 1 : -1);
 
                 return `
@@ -96,35 +90,23 @@
                         aria-label={item.name}
                         class="group relative flex h-full w-full flex-col items-center justify-center outline-none"
                     >
-                        <div class="flex h-12 w-12 items-center justify-center rounded-full transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-90 {isActive ? 'bg-[#FDA4AF]/20 text-[#FDA4AF]' : 'text-gray-400 hover:bg-gray-100/80 hover:text-gray-600'}">
-                            
+                        <div class="flex h-12 w-12 items-center justify-center rounded-full transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-90 {isActive ? 'bg-[#FDA4AF]/10' : 'text-gray-400 hover:bg-gray-100/80 hover:text-gray-600'}">
+
                             {#if item.icon === 'home'}
-                                <svg class="h-6 w-6 transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill={isActive ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                                    {#if isActive}
-                                        <path d="M3 10l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V10z"/>
-                                    {:else}
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                                    {/if}
+                                <svg class="h-6 w-6 transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill="none" stroke={isActive ? '#FDA4AF' : 'currentColor'} stroke-width={isActive ? '2.6' : '2.2'} stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                 </svg>
                             {:else if item.icon === 'polaroid'}
-                                <svg class="h-5.5 w-5.5 transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill={isActive ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                                    {#if isActive}
-                                        <path d="M4 5a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V7a2 2 0 00-2-2H4zm0 2h16v10H4V7zm3 2a2 2 0 100 4 2 2 0 000-4zm-3 7l4-4 4 4v1H4v-1zm9-3l3-3 4 4v2h-7v-3z" clip-rule="evenodd" fill-rule="evenodd"/>
-                                    {:else}
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    {/if}
+                                <svg class="h-5.5 w-5.5 transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill="none" stroke={isActive ? '#FDA4AF' : 'currentColor'} stroke-width={isActive ? '2.6' : '2.2'} stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                             {:else if item.icon === 'calendar'}
-                                <svg class="h-5.5 w-5.5 transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill={isActive ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                                    {#if isActive}
-                                        <path d="M19 4h-2V3a1 1 0 10-2 0v1H9V3a1 1 0 00-2 0v1H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 16H5V10h14v10z"/>
-                                    {:else}
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    {/if}
+                                <svg class="h-5.5 w-5.5 transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill="none" stroke={isActive ? '#FDA4AF' : 'currentColor'} stroke-width={isActive ? '2.6' : '2.2'} stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                             {:else if item.icon === 'menu'}
-                                <svg class="h-6 w-6 transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width={isActive ? "3" : "2.2"} d="M4 6h16M4 12h16M4 18h16"/>
+                                <svg class="h-6 w-6 transition-transform duration-300 {isActive ? 'scale-110' : ''}" fill="none" stroke={isActive ? '#FDA4AF' : 'currentColor'} stroke-width={isActive ? '3' : '2.2'} stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M4 6h16M4 12h16M4 18h16" />
                                 </svg>
                             {/if}
                         </div>

@@ -18,6 +18,7 @@
     import MemoryCover from '$lib/components/memories/MemoryCover.svelte'; 
     import TouchStreakRibbon from '$lib/components/dashboard/TouchStreakRibbon.svelte';
     import logo from '$lib/assets/logos/twoly.webp';
+    import HeartIcon from '$lib/components/icons/HeartIcon.svelte';
     
     onMount(() => {
         if (!authStore.isAuthenticated) goto(resolve('/login'));
@@ -188,27 +189,38 @@
     }
 
     let touchStreak = $derived.by(() => {
-        const touches = touchStreakQuery.data || [];
+            const touches = touchStreakQuery.data || [];
 
-        if (touches.length === 0) return 0;
+            if (touches.length === 0) return 0;
 
-        const uniqueDays = new Set(touches.map((touch) => toDateKey(touch.created_at)));
-        const today = new SvelteDate();
-        today.setHours(0, 0, 0, 0);
+            const meId = myId;
+            const partnerId = coupleStore.partner?.id;
+            if (!meId || !partnerId) return 0;
 
-        if (!uniqueDays.has(toDateKey(today))) {
-            return 0;
-        }
+            // build map dateKey => map of sender ids on that day (plain object to avoid Svelte Map/Set warnings)
+            const daySenders: Record<string, Record<string, true>> = {};
+            for (const t of touches) {
+                const key = toDateKey(t.created_at);
+                if (!daySenders[key]) daySenders[key] = {};
+                daySenders[key][String(t.sender_id)] = true;
+            }
 
-        let streak = 0;
-        const cursor = new SvelteDate(today);
+            const today = new SvelteDate();
+            today.setHours(0, 0, 0, 0);
 
-        while (uniqueDays.has(toDateKey(cursor))) {
-            streak += 1;
-            cursor.setDate(cursor.getDate() - 1);
-        }
+            let streak = 0;
+            const cursor = new SvelteDate(today);
 
-        return streak;
+            while (true) {
+                const key = toDateKey(cursor);
+                const senders = daySenders[key];
+                if (!senders) break;
+                if (!(senders[String(meId)] && senders[String(partnerId)])) break;
+                streak += 1;
+                cursor.setDate(cursor.getDate() - 1);
+            }
+
+            return streak;
     });
 
     const formatDateClean = (dateString: string) => {
@@ -251,16 +263,16 @@
                 {#if activePopup}
                     <div transition:fly={{y: -10, duration: 250}} class="absolute -bottom-11 right-0 bg-gray-900/95 backdrop-blur-md text-white text-[11px] px-3.5 py-2 rounded-full whitespace-nowrap shadow-xl z-50 flex items-center gap-2 font-bold tracking-wide border border-white/10 pointer-events-none">
                         {#if activePopup === 'me'}
-                            <span class="relative flex h-2 w-2">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            <span class="relative flex h-3 w-3">
+                                <HeartIcon className="animate-ping absolute inset-0 h-full w-full text-green-400 opacity-60" />
+                                <HeartIcon className="relative h-3 w-3 text-green-500" />
                             </span>
                             Online
                         {:else if activePopup === 'partner'}
                             {#if isPartnerOnline}
-                                <span class="relative flex h-2 w-2">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                <span class="relative flex h-3 w-3">
+                                    <HeartIcon className="animate-ping absolute inset-0 h-full w-full text-green-400 opacity-60" />
+                                    <HeartIcon className="relative h-3 w-3 text-green-500" />
                                 </span>
                                 Online
                             {:else}
@@ -284,10 +296,10 @@
             
             <div class="relative z-10 flex flex-col justify-center items-center text-center">
                 <!-- Badge Dinamis -->
-                <div class="inline-flex items-center gap-2.5 rounded-full bg-white/20 backdrop-blur-xl border border-white/30 px-4 py-2 mb-4 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.1)]">
-                    <span class="relative flex h-2.5 w-2.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                    <div class="inline-flex items-center gap-2.5 rounded-full bg-white/20 backdrop-blur-xl border border-white/30 px-4 py-2 mb-4 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.1)]">
+                    <span class="relative flex h-3 w-3">
+                        <HeartIcon className="animate-ping absolute inset-0 h-full w-full text-white opacity-40" />
+                        <HeartIcon className="relative h-3 w-3 text-white" />
                     </span>
                     <span class="text-[11px] font-black uppercase tracking-[0.2em] text-white/95 mt-0.5">Love Streak</span>
                 </div>

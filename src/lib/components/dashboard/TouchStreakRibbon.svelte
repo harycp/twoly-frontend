@@ -1,4 +1,7 @@
 <script lang="ts">
+    import HeartIcon from '$lib/components/icons/HeartIcon.svelte';
+    import { uiStore } from '$lib/stores/ui.store.svelte';
+
     interface Props {
         streak: number;
     }
@@ -6,7 +9,8 @@
     let { streak }: Props = $props();
 
     const maxSegments = 7;
-    const milestones = [3, 7, 14, 30];
+    const baseMilestones = [7, 14, 30, 50];
+    let milestones = $state<number[]>([]);
 
     interface BurstParticle {
         id: number;
@@ -58,6 +62,13 @@
 
         if (previousStreak !== null && currentStreak > previousStreak) {
             triggerBurst(currentStreak - previousStreak);
+
+            for (const m of milestones) {
+                if (currentStreak >= m && previousStreak < m) {
+                    uiStore.openMilestone(m);
+                    break;
+                }
+            }
         }
 
         previousStreak = currentStreak;
@@ -69,8 +80,17 @@
         };
     });
 
+    $effect(() => {
+        const maxTarget = Math.max(500, streak + 250);
+        const ms = [...baseMilestones];
+        for (let n = 100; n <= maxTarget; n += 50) ms.push(n);
+        milestones = ms;
+    });
+
     let activeSegments = $derived(Math.min(streak, maxSegments));
-    let activeMilestones = $derived(milestones.filter((milestone) => streak >= milestone));
+    let fireColorClass = $derived(streak <= 0 ? 'text-gray-300' : streak < 3 ? 'text-[#F59E0B]' : streak < 7 ? 'text-[#FB7185]' : streak < 14 ? 'text-[#F472B6]' : 'text-[#EF4444]');
+    let fireSize = $derived(40 + Math.min(streak, 30) * 1.2);
+
 </script>
 
 <section class="relative overflow-hidden rounded-[40px] border border-white/80 bg-[#fff8fb] p-6 shadow-[0_18px_48px_-18px_rgba(15,23,42,0.12)] backdrop-blur-xl">
@@ -80,25 +100,9 @@
 
     <div class="relative grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(220px,0.8fr)] lg:items-center">
         <div class="min-w-0">
-            <div class="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-[0_6px_18px_-12px_rgba(0,0,0,0.18)] border border-white/80">
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="absolute inline-flex h-full w-full rounded-full bg-[#FB7185] opacity-70 animate-ping"></span>
-                    <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#FB7185]"></span>
-                </span>
-                <span class="text-[11px] font-black uppercase tracking-[0.22em] text-[#E11D48]">Touch fire</span>
-            </div>
-
             <div class="mt-4 flex items-end gap-3">
                 <span class="text-[72px] leading-none font-black tracking-tighter text-[#111827] drop-shadow-sm">{streak}</span>
                 <span class="pb-2 text-[13px] font-black uppercase tracking-[0.22em] text-gray-400">days</span>
-            </div>
-
-            <div class="mt-5 flex flex-wrap items-center gap-2">
-                {#each milestones as milestone (milestone)}
-                    <div class={`flex h-9 w-9 items-center justify-center rounded-full border text-[10px] font-black transition-all duration-300 ${activeMilestones.includes(milestone) ? 'border-[#FB7185] bg-[#FB7185] text-white shadow-[0_0_18px_rgba(251,113,133,0.32)]' : 'border-[#FBCFE8] bg-white/80 text-[#FDA4AF]'}`}>
-                        {milestone}
-                    </div>
-                {/each}
             </div>
         </div>
 
@@ -117,15 +121,15 @@
                 {/each}
 
                 {#each Array.from({ length: maxSegments }, (_, index) => index) as index (index)}
-                    <span
-                        class={`absolute h-2.5 w-2.5 rounded-full transition-all duration-500 ${index < activeSegments ? 'bg-[#FB7185] shadow-[0_0_12px_rgba(251,113,133,0.45)]' : 'bg-[#FBCFE8]'}`}
+                    <HeartIcon
+                        className={`absolute h-2.5 w-2.5 transition-all duration-500 ${index < activeSegments ? 'text-[#FB7185] drop-shadow-[0_0_12px_rgba(251,113,133,0.45)]' : 'text-[#FBCFE8]'}`}
                         style={`transform: rotate(${index * (360 / maxSegments)}deg) translateY(-82px);`}
-                        aria-hidden="true"
-                    ></span>
+                        ariaLabel="streak-segment"
+                    />
                 {/each}
 
                 <div class="relative z-10 flex flex-col items-center justify-center text-center">
-                    <svg class="h-10 w-10 text-[#FB7185] drop-shadow-sm" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg class={fireColorClass + ' drop-shadow-sm'} style={`width:${fireSize}px;height:${fireSize}px`} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M13.5 2.25c.34 2.5-.22 4.35-1.67 5.72-.75.69-1.16 1.48-1.16 2.39 0 1.09.56 1.92 1.58 2.53-.02-1.42.47-2.66 1.46-3.71 1.3-1.37 2.14-3.1 2.17-5.18 1.94 1.64 3.07 4.01 3.07 6.54 0 4.87-3.95 8.82-8.82 8.82S3.3 17.17 3.3 12.3c0-3.31 1.82-6.25 4.62-7.78-.55 1.83.08 3.55 1.86 5.17 1.12 1.02 1.53 2.08 1.35 3.2-.17 1.01-.73 1.84-1.68 2.47 2.33-.23 4.12-1.91 4.47-4.15.36-2.26-.24-4.21-1.86-5.76-.53-.5-.45-1.36.14-1.8.5-.38 1.25-.22 1.61.3z" />
                     </svg>
                 </div>
@@ -138,6 +142,7 @@
             <div class={`h-2.5 rounded-full transition-all duration-500 ${index < activeSegments ? 'bg-[#FB7185]' : 'bg-[#FBCFE8]/70'}`}></div>
         {/each}
     </div>
+
 </section>
 
 <style>
@@ -156,5 +161,30 @@
             transform: translate(-50%, -50%) scale(1.05) translateY(-12px);
             filter: blur(1.5px);
         }
+    }
+
+    @keyframes slow-bloom {
+        0% { transform: scale(0.95); opacity: 0.85; }
+        50% { transform: scale(1.02); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .animate-pop {
+        animation: pop-in 560ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    @keyframes pop-in {
+        0% { transform: scale(.86); opacity: 0; }
+        60% { transform: scale(1.06); opacity: 1; }
+        100% { transform: scale(1); }
+    }
+
+    .animate-fade-up {
+        animation: fade-up 680ms ease-out;
+    }
+
+    @keyframes fade-up {
+        0% { transform: translateY(6px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
     }
 </style>

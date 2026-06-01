@@ -12,6 +12,7 @@
     import FloatingHearts from '$lib/components/touch/FloatingHearts.svelte';
     import ComboCounter from '$lib/components/touch/ComboCounter.svelte';
     import TouchButton from '$lib/components/touch/TouchButton.svelte';
+    import HeartIcon from '$lib/components/icons/HeartIcon.svelte';
 
     let myId = $derived(authStore.user?.id);
     let coupleId = $derived(coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id);
@@ -201,17 +202,17 @@
         <a aria-label="Back to dashboard" href={resolve('/dashboard')} class="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/70 transition-all hover:bg-white/10 hover:text-white active:scale-90 backdrop-blur-md">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
         </a>
-        <div class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 backdrop-blur-md border border-white/5">
-            <span class="relative flex h-2 w-2">
+            <div class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 backdrop-blur-md border border-white/5">
+            <span class="relative flex h-3 w-3">
                 {#if canTouch}
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                    <HeartIcon className="animate-ping absolute inset-0 h-full w-full text-rose-400 opacity-60" />
+                    <HeartIcon className="relative h-3 w-3 text-rose-500" />
                 {:else if connectionError}
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    <HeartIcon className="relative h-3 w-3 text-red-500" />
                 {:else if isRealtimeSubscribed && !isPartnerOnline}
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-slate-400"></span>
+                    <HeartIcon className="relative h-3 w-3 text-slate-400" />
                 {:else}
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500 animate-pulse"></span>
+                    <HeartIcon className="relative h-3 w-3 text-yellow-400 animate-pulse" />
                 {/if}
             </span>
             <span class="text-[10px] font-black uppercase tracking-widest {canTouch ? 'text-rose-400' : connectionError ? 'text-red-400' : isRealtimeSubscribed && !isPartnerOnline ? 'text-slate-400' : 'text-yellow-400'}">

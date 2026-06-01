@@ -3,6 +3,17 @@ class UIStore {
 
     partnerTouchBursts = $state<PartnerTouchBurst[]>([]);
 
+    // milestone modal state
+    milestonePopupData = $state<{ milestone: number; at?: string } | null>(null);
+
+    openMilestone(milestone: number) {
+        this.milestonePopupData = { milestone, at: new Date().toISOString() };
+    }
+
+    closeMilestone() {
+        this.milestonePopupData = null;
+    }
+
     private touchBurstSeed = 0;
 
     registerPartnerTouch(posX: number, combo: number) {
