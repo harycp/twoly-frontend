@@ -26,16 +26,24 @@ export const authService = {
     async googleLogin(idToken: string): Promise<AuthResponse> {
         const response = await apiService.post<AuthResponse>('/auth/google', { id_token: idToken }, { requiresAuth: false });
         authStore.login(response.access_token, response.user);
-
         try {
             const freshUser = await this.getMe();
-            return {
-                ...response,
-                user: freshUser
-            };
+            return { ...response, user: freshUser };
         } catch {
             return response;
         }
+    },
+
+    async forgotPassword(email: string): Promise<void> {
+        await apiService.post('/auth/forgot-password', { email }, { requiresAuth: false });
+    },
+
+    async verifyOtp(email: string, otp: string): Promise<void> {
+        await apiService.post('/auth/verify-otp', { email, otp }, { requiresAuth: false });
+    },
+
+    async resetPassword(email: string, otp: string, new_password: string): Promise<void> {
+        await apiService.post('/auth/reset-password', { email, otp, new_password }, { requiresAuth: false });
     },
 
     async getMe(): Promise<User> {
@@ -54,11 +62,7 @@ export const authService = {
             formData.append('avatar', data.avatar);
             payload = formData;
         } else {
-            payload = {
-                name: data.name,
-                username: data.username,
-                avatar_url: data.avatar_url
-            };
+            payload = { name: data.name, username: data.username, avatar_url: data.avatar_url };
         }
 
         const user = await apiService.put<User>('/auth/me', payload);

@@ -55,6 +55,7 @@
         errorMessage = '';
 
         try {
+            // Mengirim JWT id_token dari Google ke Backend Go
             await authService.googleLogin(response.credential);
             await goto(resolve('/dashboard'));
         } catch (error: unknown) {
@@ -139,14 +140,21 @@
                         bind:value={emailOrUsername}
                         required
                     />
-                    <Input
-                        label="Password"
-                        type="password"
-                        placeholder="Enter your password"
-                        bind:value={password}
-                        required
-                    />
-                    <div class="pt-4">
+                    <div>
+                        <Input
+                            label="Password"
+                            type="password"
+                            placeholder="Enter your password"
+                            bind:value={password}
+                            required
+                        />
+                        <div class="flex justify-end mt-2">
+                            <a href={resolve('/forgot-password')} class="text-[11px] font-bold text-gray-400 hover:text-[#FDA4AF] transition-colors">
+                                Forgot password?
+                            </a>
+                        </div>
+                    </div>
+                    <div class="pt-2">
                         <Button type="submit" class="w-full" {isLoading}>Log In</Button>
                     </div>
                 </form>
