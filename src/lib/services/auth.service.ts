@@ -1,5 +1,6 @@
 import { apiService } from './api.service';
 import { authStore } from '../stores/auth.store.svelte';
+import { coupleService } from './couple.service';
 import type { AuthResponse, LoginRequest, RegisterRequest, UpdateProfileRequest, User } from '../types/auth.types';
 
 export const authService = {
@@ -14,6 +15,7 @@ export const authService = {
 
         try {
             const freshUser = await this.getMe();
+            await coupleService.getMyCouple().catch(() => undefined);
             return {
                 ...response,
                 user: freshUser
@@ -28,6 +30,7 @@ export const authService = {
         authStore.login(response.access_token, response.user);
         try {
             const freshUser = await this.getMe();
+            await coupleService.getMyCouple().catch(() => undefined);
             return { ...response, user: freshUser };
         } catch {
             return response;
