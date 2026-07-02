@@ -290,7 +290,7 @@
                 onDelete={handleLogout}
             />
             <p class="text-center text-[11px] font-bold text-gray-400 mt-6 tracking-widest">
-                TWOLY BETA V1.0.0
+                TWOLY V1.0.0
             </p>
         </section>
 
