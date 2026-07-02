@@ -10,6 +10,7 @@
     
     import MobileShell from '$lib/components/layout/MobileShell.svelte';
     import PhotoViewer from '$lib/components/common/PhotoViewer.svelte';
+    import MediaPreview from '$lib/components/common/MediaPreview.svelte';
 
     onMount(() => {
         if (!authStore.isAuthenticated) goto(resolve('/login'));
@@ -79,6 +80,7 @@
     let viewerPhotos = $derived(filteredPhotos.map(p => ({
         id: p.id,
         photo_url: p.photo_url,
+        media_type: p.media_type,
         caption: p.caption,
         memory_id: p.memory.id,
         memory_title: p.memory.title,
@@ -158,8 +160,8 @@
                     <svg class="h-9 w-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 </div>
                 <h3 class="text-xl font-black text-gray-900 tracking-tight">Empty Frame</h3>
-                <p class="text-[13px] font-medium text-gray-500 mt-2 max-w-60">
-                    {searchQuery ? "No matches found for your search." : "No pictures saved yet. Go upload some in your Memories!"}
+                    <p class="text-[13px] font-medium text-gray-500 mt-2 max-w-60">
+                    {searchQuery ? "No matches found for your search." : "No media saved yet. Go upload some in your Memories!"}
                 </p>
             </div>
             
@@ -173,7 +175,15 @@
                                 {#each photosList.slice(0, 4) as photo (photo.id)}
                                     {@const realIndex = filteredPhotos.findIndex(p => p.id === photo.id)}
                                     <button onclick={() => openViewer(realIndex)} class="relative aspect-square bg-gray-100 rounded-[20px] overflow-hidden shadow-[0_4px_15px_-5px_rgba(0,0,0,0.05)] border border-white/60 active:scale-95 transition-transform group">
-                                        <img src={photo.photo_url} alt="Cover" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
+                                        <MediaPreview
+                                            src={photo.photo_url}
+                                            mediaType={photo.media_type}
+                                            alt="Cover"
+                                            class="h-full w-full"
+                                            mediaClass="object-cover transition-transform duration-700 group-hover:scale-105"
+                                            loading="lazy"
+                                            showBadge={true}
+                                        />
                                     </button>
                                 {/each}
                             </div>
@@ -190,7 +200,15 @@
                                 {#each photosList.slice(0, 9) as photo (photo.id)}
                                     {@const realIndex = filteredPhotos.findIndex(p => p.id === photo.id)}
                                     <button onclick={() => openViewer(realIndex)} class="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden shadow-sm border border-white/60 active:scale-95 transition-transform group">
-                                        <img src={photo.photo_url} alt="Month item" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
+                                        <MediaPreview
+                                            src={photo.photo_url}
+                                            mediaType={photo.media_type}
+                                            alt="Month item"
+                                            class="h-full w-full"
+                                            mediaClass="object-cover transition-transform duration-700 group-hover:scale-105"
+                                            loading="lazy"
+                                            showBadge={true}
+                                        />
                                     </button>
                                 {/each}
                             </div>
@@ -219,7 +237,15 @@
                                         onclick={() => openViewer(realIndex)} 
                                         class="relative bg-gray-100 overflow-hidden active:opacity-70 transition-opacity {i === 0 && photosList.length >= 3 ? 'col-span-2 row-span-2 aspect-square' : 'aspect-square'}"
                                     >
-                                        <img src={photo.photo_url} alt="Day item" class="h-full w-full object-cover" loading="lazy" />
+                                        <MediaPreview
+                                            src={photo.photo_url}
+                                            mediaType={photo.media_type}
+                                            alt="Day item"
+                                            class="h-full w-full"
+                                            mediaClass="object-cover"
+                                            loading="lazy"
+                                            showBadge={true}
+                                        />
                                     </button>
                                 {/each}
                             </div>
@@ -235,7 +261,15 @@
                             onclick={() => openViewer(i)}
                             class="relative aspect-square bg-gray-100 overflow-hidden active:opacity-70 transition-opacity"
                         >
-                            <img src={photo.photo_url} alt="All Photos" class="h-full w-full object-cover" loading="lazy" />
+                            <MediaPreview
+                                src={photo.photo_url}
+                                mediaType={photo.media_type}
+                                alt="All Media"
+                                class="h-full w-full"
+                                mediaClass="object-cover"
+                                loading="lazy"
+                                showBadge={true}
+                            />
                         </button>
                     {/each}
                 </div>

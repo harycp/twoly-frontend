@@ -16,6 +16,7 @@
     import Button from '$lib/components/common/Button.svelte';
     import LocationMapPreview from '$lib/components/common/LocationMapPreview.svelte';
     import PhotoViewer from '$lib/components/common/PhotoViewer.svelte';
+    import MediaPreview from '$lib/components/common/MediaPreview.svelte';
     
     // Impor Komponen Form & Alert untuk Mode Edit
     import Input from '$lib/components/common/Input.svelte';
@@ -87,6 +88,7 @@
     let viewerPhotos = $derived(photos.map(p => ({
         id: p.id,
         photo_url: p.photo_url,
+        media_type: p.media_type,
         caption: p.caption,
         memory_id: memoryId,
         memory_title: memory ? memory.title : '',
@@ -173,7 +175,7 @@
             queryClient.invalidateQueries({ queryKey: ['couple-gallery'] });
         } catch (error) {
             console.error(error);
-            alertState = { isOpen: true, title: 'Error', message: 'Failed to delete photo.' };
+            alertState = { isOpen: true, title: 'Error', message: 'Failed to delete media.' };
         } finally {
             photoDeletingId = null;
             photoToDelete = null;
@@ -191,7 +193,7 @@
             queryClient.invalidateQueries({ queryKey: ['memory-photos', memoryId] });
             queryClient.invalidateQueries({ queryKey: ['couple-gallery'] });
         } catch (error) {
-            alertState = { isOpen: true, title: 'Upload Failed', message: 'Failed to upload photos.' };
+            alertState = { isOpen: true, title: 'Upload Failed', message: 'Failed to upload media.' };
             console.error(error);
         } finally {
             isUploading = false;
@@ -334,19 +336,22 @@
         <section>
             <div class="flex items-center justify-between mb-6">
                 <div class="flex flex-col">
-                    <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">Gallery</h2>
+                    <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">Media</h2>
                     <span class="text-[13px] font-bold text-gray-400">
-                        {isEditing ? 'Manage photos' : `${photos.length} photos`}
+                        {isEditing ? 'Manage media' : `${photos.length} media items`}
                     </span>
                 </div>
                 
-                <input type="file" multiple accept="image/*" class="hidden" bind:this={fileInput} onchange={handleFileSelect} />
+                <input type="file" multiple accept="image/*,video/*" class="hidden" bind:this={fileInput} onchange={handleFileSelect} />
                 
                 <Button variant="secondary" size="md" class="h-10 px-4 text-[12px] bg-white/60 border-white text-gray-800 shadow-sm" onclick={() => fileInput.click()} isLoading={isUploading}>
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    Add Photos
+                    Add Media
                 </Button>
             </div>
+            <p class="-mt-2 mb-4 text-[11px] font-bold text-gray-400">
+                Supports images and videos.
+            </p>
 
             {#if photosQuery.isPending}
                 <div class="grid grid-cols-2 gap-4">
@@ -358,8 +363,8 @@
                     <div class="h-16 w-16 mb-4 rounded-[20px] bg-[#DDD6FE]/30 flex items-center justify-center text-[#8B5CF6] -rotate-6">
                         <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
-                    <p class="text-lg font-black text-gray-800 tracking-tight">No photos yet</p>
-                    <p class="text-sm font-medium text-gray-500 mt-1 max-w-50">Upload memories to complete this story.</p>
+                    <p class="text-lg font-black text-gray-800 tracking-tight">No media yet</p>
+                    <p class="text-sm font-medium text-gray-500 mt-1 max-w-50">Upload images or videos to complete this story.</p>
                 </div>
             {:else}
                 <div class="grid grid-cols-2 gap-4">
@@ -371,7 +376,15 @@
                                 onclick={() => openPhotoViewer(i)}
                                 class="h-full w-full outline-none text-left transition-transform active:scale-95 {isEditing ? 'cursor-default active:scale-100' : 'hover:scale-[1.01]'}"
                             >
-                                <img src={photo.photo_url} alt="Memory" class="h-full w-full object-cover transition-transform duration-700 ease-out {isEditing ? '' : 'group-hover:scale-105'}" loading="lazy" />
+                                <MediaPreview
+                                    src={photo.photo_url}
+                                    mediaType={photo.media_type}
+                                    alt="Memory"
+                                    class="h-full w-full"
+                                    mediaClass={`object-cover transition-transform duration-700 ease-out ${isEditing ? '' : 'group-hover:scale-105'}`}
+                                    loading="lazy"
+                                    showBadge={true}
+                                />
                                 {#if !isEditing}
                                     <div class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                                 {/if}
@@ -387,7 +400,7 @@
                                             type="button" 
                                             onclick={() => promptDeletePhoto(photo.id)}
                                             class="flex h-12 w-12 items-center justify-center rounded-full bg-red-500 text-white shadow-lg active:scale-90 transition-transform"
-                                            aria-label="Delete Photo"
+                                            aria-label="Delete Media"
                                         >
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
@@ -433,9 +446,9 @@
 
 <AlertDialog 
     bind:isOpen={isPhotoDeleteDialogOpen}
-    title="Delete Photo"
-    message="Are you sure you want to delete this photo?"
-    confirmText="Delete"
+    title="Delete Media"
+    message="Are you sure you want to delete this media?"
+    confirmText="Delete Media"
     cancelText="Cancel"
     isDestructive={true}
     onConfirm={confirmDeletePhoto}

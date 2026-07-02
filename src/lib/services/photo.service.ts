@@ -5,6 +5,7 @@ export interface MemoryPhoto {
     memory_id: string;
     uploaded_by: string;
     photo_url: string;
+    media_type?: 'image' | 'video';
     cloudinary_public_id: string;
     caption?: string;
     created_at: string;

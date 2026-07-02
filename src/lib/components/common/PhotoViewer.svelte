@@ -4,10 +4,13 @@
     import { fade, scale } from 'svelte/transition';
     import { resolve } from '$app/paths';
     import { uiStore } from '$lib/stores/ui.store.svelte';
+    import MediaPreview from './MediaPreview.svelte';
+    import { isVideoMedia } from '$lib/utils/media';
 
     interface ViewerPhoto {
         id: string;
         photo_url: string;
+        media_type?: string;
         caption?: string;
         created_at?: string;
         memory_id?: string;
@@ -24,6 +27,7 @@
     let { photos, activeIndex = $bindable(0), isOpen = $bindable(false) }: Props = $props();
 
     let currentPhoto = $derived(photos[activeIndex]);
+    let isCurrentVideo = $derived(currentPhoto ? isVideoMedia(currentPhoto.photo_url, currentPhoto.media_type) : false);
     let showControls = $state(true);
 
     function next() {
@@ -90,24 +94,40 @@
         transition:fade={{ duration: 300 }}
         class="fixed inset-0 z-9999 flex flex-col items-center justify-center bg-black"
     >
-        <!-- Area Klik untuk Foto -->
-        <button 
-            type="button"
+        <!-- Area Media -->
+        <div 
             class="absolute inset-0 z-0 h-full w-full outline-none cursor-default touch-none"
             onclick={() => showControls = !showControls}
+            onkeydown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    showControls = !showControls;
+                }
+            }}
             ontouchstart={handleTouchStart}
             ontouchend={handleTouchEnd}
+            role="button"
+            tabindex="0"
             aria-label="Toggle controls"
         >
             {#key currentPhoto.id}
-                <img 
-                    src={currentPhoto.photo_url} 
-                    alt="Focused Memory" 
-                    transition:scale={{ duration: 300, start: 0.98 }}
-                    class="h-full w-full object-contain pointer-events-none"
-                />
+                <div transition:scale={{ duration: 300, start: 0.98 }} class="h-full w-full">
+                    <MediaPreview
+                        src={currentPhoto.photo_url}
+                        mediaType={currentPhoto.media_type}
+                        alt="Focused Memory"
+                        class="h-full w-full"
+                        mediaClass="object-contain"
+                        controls={isCurrentVideo}
+                        autoplay={false}
+                        muted={false}
+                        loop={false}
+                        playsInline={true}
+                        stopClickPropagation={true}
+                    />
+                </div>
             {/key}
-        </button>
+        </div>
 
         <!-- TOP CONTROLS -->
         {#if showControls}
@@ -168,8 +188,8 @@
 
         <!-- DESKTOP ARROWS -->
         {#if showControls}
-            <button transition:fade type="button" onclick={(e) => { e.stopPropagation(); prev(); }} class="hidden md:flex absolute left-4 z-20 h-12 w-12 items-center justify-center rounded-full bg-black/40 text-white hover:bg-white/20 transition-all border border-white/10" aria-label="Previous photo"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg></button>
-            <button transition:fade type="button" onclick={(e) => { e.stopPropagation(); next(); }} class="hidden md:flex absolute right-4 z-20 h-12 w-12 items-center justify-center rounded-full bg-black/40 text-white hover:bg-white/20 transition-all border border-white/10" aria-label="Next photo"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></button>
+            <button transition:fade type="button" onclick={(e) => { e.stopPropagation(); prev(); }} class="hidden md:flex absolute left-4 z-20 h-12 w-12 items-center justify-center rounded-full bg-black/40 text-white hover:bg-white/20 transition-all border border-white/10" aria-label="Previous item"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg></button>
+            <button transition:fade type="button" onclick={(e) => { e.stopPropagation(); next(); }} class="hidden md:flex absolute right-4 z-20 h-12 w-12 items-center justify-center rounded-full bg-black/40 text-white hover:bg-white/20 transition-all border border-white/10" aria-label="Next item"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></button>
         {/if}
     </div>
 {/if}

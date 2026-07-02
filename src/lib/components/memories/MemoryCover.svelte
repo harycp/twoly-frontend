@@ -1,6 +1,8 @@
 <script lang="ts">
     import { createQuery } from '@tanstack/svelte-query';
     import { photoService } from '$lib/services/photo.service';
+    import MediaPreview from '$lib/components/common/MediaPreview.svelte';
+    import { isVideoMedia } from '$lib/utils/media';
 
     interface Props {
         memoryId: string;
@@ -41,12 +43,20 @@
     {:else}
         <!-- SLIDESHOW FOTO PREMIUM DENGAN CROSSFADE -->
         {#each photos as photo, i (photo.id)}
-            <img 
-                src={photo.photo_url} 
-                alt="Memory Cover" 
-                class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out group-hover:scale-105 {i === activeIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}" 
-                loading="lazy"
-            />
+            <div class="absolute inset-0 transition-opacity duration-1000 ease-in-out group-hover:scale-105 {i === activeIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}">
+                <MediaPreview
+                    src={photo.photo_url}
+                    mediaType={photo.media_type}
+                    alt="Memory Cover"
+                    class="h-full w-full"
+                    mediaClass="object-cover"
+                    loading="lazy"
+                    autoplay={isVideoMedia(photo.photo_url, photo.media_type) && i === activeIndex}
+                    muted={isVideoMedia(photo.photo_url, photo.media_type)}
+                    loop={isVideoMedia(photo.photo_url, photo.media_type)}
+                    playsInline={true}
+                />
+            </div>
         {/each}
     {/if}
 </div>
