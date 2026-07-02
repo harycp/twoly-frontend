@@ -377,6 +377,7 @@
                         label="Delete Plan Entirely"
                         dialogTitle="Delete Date Plan"
                         dialogMessage="Are you sure you want to delete this date plan? This action cannot be undone."
+                        confirmText="Delete Plan"
                         onDelete={handleDelete}
                     />
                     

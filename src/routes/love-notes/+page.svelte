@@ -180,6 +180,7 @@
                                     <DeleteButton 
                                         label="" 
                                         class="h-8! w-8! p-0! bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full"
+                                        confirmText="Delete Note"
                                         onDelete={() => handleDeleteNote(note.id)} 
                                     />
                                 </div>

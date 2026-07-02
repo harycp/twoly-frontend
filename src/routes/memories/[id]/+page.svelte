@@ -407,6 +407,7 @@
                     label="Delete Memory Entirely"
                     dialogTitle="Delete Memory"
                     dialogMessage="Are you sure you want to delete this memory? All photos attached to it will also be lost forever."
+                    confirmText="Delete Memory"
                     onDelete={handleDeleteMemory}
                 />
                 <p class="text-center text-[11px] font-bold text-gray-400 mt-3 px-4">

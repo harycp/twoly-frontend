@@ -6,6 +6,7 @@
         label?: string;
         dialogTitle?: string;
         dialogMessage?: string;
+        confirmText?: string;
         onDelete: () => Promise<void> | void;
         class?: string;
     }
@@ -14,6 +15,7 @@
         label = 'Delete',
         dialogTitle = 'Are you sure?',
         dialogMessage = 'This action cannot be undone.',
+        confirmText = 'Delete',
         onDelete,
         class: className = ''
     }: Props = $props();
@@ -40,7 +42,7 @@
     bind:isOpen={isDialogOpen}
     title={dialogTitle}
     message={dialogMessage}
-    confirmText="Delete"
+    confirmText={confirmText}
     cancelText="Cancel"
     isDestructive={true}
     onConfirm={handleConfirmDelete}

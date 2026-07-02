@@ -286,6 +286,7 @@
                 label="Log Out of Twoly"
                 dialogTitle="Log Out"
                 dialogMessage="Are you sure you want to log out from this device? You can log back in anytime."
+                confirmText="Log Out"
                 onDelete={handleLogout}
             />
             <p class="text-center text-[11px] font-bold text-gray-400 mt-6 tracking-widest">
