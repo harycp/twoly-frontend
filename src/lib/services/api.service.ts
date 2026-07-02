@@ -97,8 +97,7 @@ export const apiService = {
 
 		const config: RequestInit = {
 			...customConfig,
-			headers,
-			credentials: 'include'
+			headers
 		};
 
 		const requestBody = createBody(body);
