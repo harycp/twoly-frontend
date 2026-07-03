@@ -467,7 +467,7 @@ function createCanvas(size: ExportSize): { canvas: HTMLCanvasElement; ctx: Canva
 	const canvas = document.createElement('canvas');
 	canvas.width = size.width;
 	canvas.height = size.height;
-	const ctx = canvas.getContext('2d');
+	const ctx = canvas.getContext('2d', { willReadFrequently: true });
 	if (!ctx) throw new Error('Canvas context is not available.');
 	ctx.imageSmoothingEnabled = true;
 	ctx.imageSmoothingQuality = 'high';
@@ -675,8 +675,12 @@ export async function shareOrDownloadBlob(blob: Blob, fileName: string): Promise
 	const file = new File([blob], fileName, { type: blob.type });
 
 	if (navigator.canShare?.({ files: [file] }) && navigator.share) {
-		await navigator.share({ files: [file], title: fileName.replace(/\.[^.]+$/, '') });
-		return;
+		try {
+			await navigator.share({ files: [file], title: fileName.replace(/\.[^.]+$/, '') });
+			return;
+		} catch {
+			// The browser may reject share requests after async rendering; fall back to download.
+		}
 	}
 
 	const url = URL.createObjectURL(blob);
