@@ -48,7 +48,7 @@
             playsinline={playsInline}
             preload={controls || autoplay ? 'auto' : 'metadata'}
             onclick={stopClickPropagation ? (event) => event.stopPropagation() : undefined}
-        />
+        ></video>
     {:else}
         <img
             src={src}

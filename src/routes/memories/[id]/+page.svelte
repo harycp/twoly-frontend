@@ -17,6 +17,7 @@
     import LocationMapPreview from '$lib/components/common/LocationMapPreview.svelte';
     import PhotoViewer from '$lib/components/common/PhotoViewer.svelte';
     import MediaPreview from '$lib/components/common/MediaPreview.svelte';
+    import MemoryExportStudio from '$lib/components/memories/MemoryExportStudio.svelte';
     
     // Impor Komponen Form & Alert untuk Mode Edit
     import Input from '$lib/components/common/Input.svelte';
@@ -66,6 +67,7 @@
     // Viewer States
     let isViewerOpen = $state(false);
     let activePhotoIndex = $state(0);
+    let isExportStudioOpen = $state(false);
 
     onMount(() => {
         if (!authStore.isAuthenticated) goto(resolve('/login'));
@@ -218,13 +220,23 @@
     >
         {#snippet rightContent()}
             {#if memory}
-                {#if isEditing}
-                    <button onclick={() => isEditing = false} class="px-2 text-[13px] font-bold text-gray-500 hover:text-gray-800 transition-colors">Cancel</button>
-                {:else}
-                    <button aria-label="Edit Memory" onclick={startEditing} class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm border border-gray-100 text-gray-700 active:scale-90 transition-transform">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                    </button>
-                {/if}
+                <div class="flex items-center gap-2">
+                    {#if isEditing}
+                        <button onclick={() => isEditing = false} class="px-2 text-[13px] font-bold text-gray-500 hover:text-gray-800 transition-colors">Cancel</button>
+                    {:else}
+                        <button
+                            aria-label="Export Memory"
+                            onclick={() => isExportStudioOpen = true}
+                            disabled={!photos.length}
+                            class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm border border-gray-100 text-gray-700 transition-transform active:scale-90 disabled:opacity-40 disabled:active:scale-100"
+                        >
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v10m0 0l-3-3m3 3 3-3M5 20h14"/></svg>
+                        </button>
+                        <button aria-label="Edit Memory" onclick={startEditing} class="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm border border-gray-100 text-gray-700 active:scale-90 transition-transform">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        </button>
+                    {/if}
+                </div>
             {/if}
         {/snippet}
     </PageHeader>
@@ -435,6 +447,14 @@
         photos={viewerPhotos} 
         bind:activeIndex={activePhotoIndex} 
         bind:isOpen={isViewerOpen} 
+    />
+
+    <MemoryExportStudio
+        bind:isOpen={isExportStudioOpen}
+        title={memory?.title || 'Memory'}
+        memoryDate={memory?.memory_date}
+        items={photos}
+        defaultIndex={activePhotoIndex}
     />
 </MobileShell>
 
