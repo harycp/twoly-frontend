@@ -110,6 +110,7 @@ const VIDEO_FRAME_RATE = 30;
 const GIF_FRAME_RATE = 12;
 const MEDIA_PADDING = 64;
 const CORNER_RADIUS = 48;
+const TRANSITION_SECONDS = 0.38;
 
 function waitForAnimationFrame(): Promise<number> {
 	return new Promise((resolve) => requestAnimationFrame(resolve));
@@ -152,6 +153,16 @@ function getSequence(items: MemoryExportMediaItem[], selectedIndex = 0): MemoryE
 	if (items.length === 0) return [];
 	const safeIndex = clamp(selectedIndex, 0, items.length - 1);
 	return [...items.slice(safeIndex), ...items.slice(0, safeIndex)];
+}
+
+function waitForVideoFrame(video: HTMLVideoElement): Promise<void> {
+	if ('requestVideoFrameCallback' in video) {
+		return new Promise((resolve) => {
+			video.requestVideoFrameCallback(() => resolve());
+		});
+	}
+
+	return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }
 
 function roundRectPath(
@@ -288,7 +299,6 @@ function drawExportFrame(
 	memoryDate?: string
 ): void {
 	const theme = getTheme(themeKey);
-	const eased = easeInOutCubic(clamp(progress, 0, 1));
 	const fadeIn = clamp(progress / 0.16, 0, 1);
 	const fadeOut = clamp((1 - progress) / 0.14, 0, 1);
 	const opacity = Math.min(fadeIn, fadeOut, 1);
@@ -392,6 +402,36 @@ function drawExportFrame(
 	ctx.fillStyle = theme.accent;
 	ctx.font = `700 ${Math.round(width * 0.015)}px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
 	ctx.fillText(label.toUpperCase(), cardX + 48, cardY + cardHeight - 68);
+	ctx.restore();
+}
+
+function drawTransitionOverlay(
+	ctx: CanvasRenderingContext2D,
+	width: number,
+	height: number,
+	currentIndex: number,
+	segmentCount: number,
+	progress: number,
+	currentTheme: ThemeDefinition,
+	fromMedia: MediaResource,
+	toMedia: MediaResource | null,
+	title: string,
+	memoryDate?: string
+): void {
+	const transitionProgress = clamp(progress / TRANSITION_SECONDS, 0, 1);
+	const currentAlpha = 1 - easeInOutCubic(transitionProgress);
+	const nextAlpha = easeInOutCubic(transitionProgress);
+
+	if (toMedia) {
+		ctx.save();
+		ctx.globalAlpha = nextAlpha;
+		drawExportFrame(ctx, width, height, currentTheme === getTheme('paper') ? 'paper' : 'aurora', toMedia, currentIndex + 1, segmentCount, 0.5, title, memoryDate);
+		ctx.restore();
+	}
+
+	ctx.save();
+	ctx.globalAlpha = currentAlpha;
+	drawExportFrame(ctx, width, height, currentTheme === getTheme('paper') ? 'paper' : 'aurora', fromMedia, currentIndex, segmentCount, progress, title, memoryDate);
 	ctx.restore();
 }
 
@@ -513,10 +553,9 @@ async function recordVideo(canvas: HTMLCanvasElement, drawTimeline: (timeSeconds
 			await drawTimeline(timeSeconds);
 		};
 
-		let start = 0;
+		let start = performance.now();
 		const loop = async (timestamp: number) => {
 			if (cancelled) return;
-			if (!start) start = timestamp;
 			const elapsed = (timestamp - start) / 1000;
 			if (elapsed >= durationSeconds) {
 				await step(durationSeconds);
@@ -524,11 +563,14 @@ async function recordVideo(canvas: HTMLCanvasElement, drawTimeline: (timeSeconds
 				return;
 			}
 			await step(elapsed);
-			await waitForAnimationFrame();
-			void loop(performance.now());
+			requestAnimationFrame((nextTimestamp) => {
+				void loop(nextTimestamp);
+			});
 		};
 
-		void loop(performance.now());
+		requestAnimationFrame((timestamp) => {
+			void loop(timestamp);
+		});
 	});
 }
 
@@ -655,10 +697,15 @@ export async function exportMemoryVideo(input: MemoryExportInput, onProgress?: (
 
 		if (segment.resource.isVideo && segment.resource.video) {
 			try {
-				if (segment.resource.video.paused) {
-					await segment.resource.video.play();
+				const video = segment.resource.video;
+				if (video.paused) {
+					await video.play();
 				}
-				await seekVideo(segment.resource.video, localTime);
+				const desiredTime = clamp(localTime, 0, Math.max(0, video.duration - 0.05));
+				if (Math.abs(video.currentTime - desiredTime) > 0.12) {
+					video.currentTime = desiredTime;
+				}
+				await waitForVideoFrame(video);
 			} catch {
 				// ignore and draw last available frame
 			}
@@ -692,6 +739,10 @@ export async function shareOrDownloadBlob(blob: Blob, fileName: string): Promise
 	anchor.click();
 	anchor.remove();
 	setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export function canUseNativeShare(): boolean {
+	return typeof navigator !== 'undefined' && !!navigator.share && !!navigator.canShare;
 }
 
 export function createMemoryExportFileName(title: string, format: MemoryExportFormat, mimeType?: string): string {
