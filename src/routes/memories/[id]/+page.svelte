@@ -7,6 +7,7 @@
     
     import { authStore } from '$lib/stores/auth.store.svelte';
     import { coupleStore } from '$lib/stores/couple.store.svelte';
+    import { coupleService } from '$lib/services/couple.service';
     import { memoryService } from '$lib/services/memory.service';
     import { photoService } from '$lib/services/photo.service';
     
@@ -206,7 +207,16 @@
 
     // --- FUNGSI SYNC DARI GOOGLE DRIVE ---
     async function handleSyncGDrive() {
-        if (!coupleStore.data?.gdrive_folder_url && !coupleStore.data?.gdrive_folder_id) {
+        let couple = coupleStore.data;
+        if (!couple?.gdrive_folder_url && !couple?.gdrive_folder_id) {
+            try {
+                couple = await coupleService.getMyCouple();
+            } catch (e) {
+                // Ignore
+            }
+        }
+
+        if (!couple?.gdrive_folder_url && !couple?.gdrive_folder_id) {
             alertState = { 
                 isOpen: true, 
                 title: 'Google Drive Not Connected', 
@@ -217,7 +227,7 @@
 
         isSyncingDrive = true;
         try {
-            const res = await photoService.syncGDrivePhotos(memoryId);
+            const res = await photoService.syncGDrivePhotos(memoryId, couple.gdrive_folder_url);
             queryClient.invalidateQueries({ queryKey: ['memory-photos', memoryId] });
             queryClient.invalidateQueries({ queryKey: ['couple-gallery'] });
             
