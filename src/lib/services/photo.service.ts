@@ -1,4 +1,5 @@
 import { apiService } from './api.service';
+import type { SyncGDrivePhotosResponse } from '../types/gdrive.types';
 
 export interface MemoryPhoto {
     id: string;
@@ -6,7 +7,10 @@ export interface MemoryPhoto {
     uploaded_by: string;
     photo_url: string;
     media_type?: 'image' | 'video';
-    cloudinary_public_id: string;
+    storage_provider?: 'cloudinary' | 'gdrive';
+    cloudinary_public_id?: string;
+    drive_file_id?: string;
+    thumbnail_url?: string;
     caption?: string;
     created_at: string;
 }
@@ -38,6 +42,12 @@ export const photoService = {
         Array.from(files).forEach(file => formData.append('files', file));
         captions.forEach(caption => formData.append('captions', caption));
         return await apiService.post<MemoryPhoto[]>(`/memories/${memoryId}/photos`, formData);
+    },
+
+    async syncGDrivePhotos(memoryId: string, folderUrl?: string): Promise<SyncGDrivePhotosResponse> {
+        return await apiService.post<SyncGDrivePhotosResponse>(`/memories/${memoryId}/photos/sync-gdrive`, {
+            folder_url: folderUrl
+        });
     },
 
     async deletePhoto(memoryId: string, photoId: string): Promise<void> {

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { isVideoMedia } from '$lib/utils/media';
+    import { isVideoMedia, resolveMediaUrl } from '$lib/utils/media';
 
     interface Props {
         src: string;
@@ -33,13 +33,14 @@
         stopClickPropagation = false
     }: Props = $props();
 
+    let resolvedSrc = $derived(resolveMediaUrl(src));
     let isVideo = $derived(isVideoMedia(src, mediaType));
 </script>
 
 <div class={`relative h-full w-full ${className}`.trim()}>
     {#if isVideo}
         <video
-            src={src}
+            src={resolvedSrc}
             class={`h-full w-full ${mediaClass}`.trim()}
             {controls}
             {autoplay}
@@ -51,7 +52,7 @@
         ></video>
     {:else}
         <img
-            src={src}
+            src={resolvedSrc}
             {alt}
             class={`h-full w-full ${mediaClass}`.trim()}
             {loading}

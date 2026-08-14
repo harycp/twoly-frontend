@@ -38,3 +38,14 @@ export function isVideoMedia(url: string, mediaType?: string | null): boolean {
 export function isImageMedia(url: string, mediaType?: string | null): boolean {
 	return getMediaType(url, mediaType) === 'image';
 }
+
+export function resolveMediaUrl(url: string): string {
+	if (!url) return '';
+	if (url.startsWith('/api/v1')) {
+		const base = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL)
+			? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/v1\/?$/, '')
+			: 'http://localhost:8080';
+		return `${base}${url}`;
+	}
+	return url;
+}

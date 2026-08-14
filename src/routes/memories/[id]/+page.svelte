@@ -32,6 +32,7 @@
     const queryClient = useQueryClient();
 
     let isUploading = $state(false);
+    let isSyncingDrive = $state(false);
     let fileInput: HTMLInputElement;
 
     // --- STATES UNTUK MODE EDIT & DELETE ---
@@ -203,6 +204,44 @@
         }
     }
 
+    // --- FUNGSI SYNC DARI GOOGLE DRIVE ---
+    async function handleSyncGDrive() {
+        if (!coupleStore.data?.gdrive_folder_url && !coupleStore.data?.gdrive_folder_id) {
+            alertState = { 
+                isOpen: true, 
+                title: 'Google Drive Not Configured', 
+                message: 'Silakan hubungkan folder Google Drive 10TB Anda di menu Settings terlebih dahulu.' 
+            };
+            return;
+        }
+
+        isSyncingDrive = true;
+        try {
+            const res = await photoService.syncGDrivePhotos(memoryId);
+            queryClient.invalidateQueries({ queryKey: ['memory-photos', memoryId] });
+            queryClient.invalidateQueries({ queryKey: ['couple-gallery'] });
+            
+            if (res.total_imported > 0) {
+                alertState = { 
+                    isOpen: true, 
+                    title: 'Sync Success! 🎉', 
+                    message: `Berhasil mengimpor ${res.total_imported} file baru dari Google Drive!` 
+                };
+            } else {
+                alertState = { 
+                    isOpen: true, 
+                    title: 'Already Up to Date', 
+                    message: `Semua media (${res.total_found} file) di Google Drive sudah tersinkronisasi.` 
+                };
+            }
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to sync with Google Drive.';
+            alertState = { isOpen: true, title: 'Sync Failed', message };
+        } finally {
+            isSyncingDrive = false;
+        }
+    }
+
     function openPhotoViewer(index: number) {
         // Jangan buka viewer jika sedang mode edit
         if (isEditing) return; 
@@ -356,10 +395,24 @@
                 
                 <input type="file" multiple accept="image/*,video/*" class="hidden" bind:this={fileInput} onchange={handleFileSelect} />
                 
-                <Button variant="secondary" size="md" class="h-10 px-4 text-[12px] bg-white/60 border-white text-gray-800 shadow-sm" onclick={() => fileInput.click()} isLoading={isUploading}>
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    Add Media
-                </Button>
+                <div class="flex items-center gap-2">
+                    <Button 
+                        variant="secondary" 
+                        size="md" 
+                        class="h-10 px-3 text-[12px] bg-blue-50/80 border-blue-200/60 text-blue-600 shadow-sm hover:bg-blue-100" 
+                        onclick={handleSyncGDrive} 
+                        isLoading={isSyncingDrive}
+                        title="Sync media from your Google Drive 10TB folder"
+                    >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Sync Drive
+                    </Button>
+
+                    <Button variant="secondary" size="md" class="h-10 px-4 text-[12px] bg-white/60 border-white text-gray-800 shadow-sm" onclick={() => fileInput.click()} isLoading={isUploading}>
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        Add Media
+                    </Button>
+                </div>
             </div>
             <p class="-mt-2 mb-4 text-[11px] font-bold text-gray-400">
                 Supports images and videos.

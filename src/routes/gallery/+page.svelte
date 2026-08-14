@@ -115,6 +115,13 @@
                 </a>
                 <h1 class="text-3xl font-black text-gray-900 tracking-tight leading-none">Gallery</h1>
             </div>
+
+            {#if coupleStore.data?.gdrive_folder_id}
+                <a href={resolve('/settings')} class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50/80 border border-blue-200/60 text-[11px] font-black text-blue-600 shadow-sm transition-transform active:scale-95">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                    <span>10TB Drive</span>
+                </a>
+            {/if}
         </div>
 
         <div class="px-6">

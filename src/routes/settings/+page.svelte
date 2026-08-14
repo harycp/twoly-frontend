@@ -8,6 +8,7 @@
     import { coupleStore } from '$lib/stores/couple.store.svelte';
     import { authService } from '$lib/services/auth.service';
     import { coupleService } from '$lib/services/couple.service';
+    import { gdriveService } from '$lib/services/gdrive.service';
     
     import MobileShell from '$lib/components/layout/MobileShell.svelte';
     import PageHeader from '$lib/components/layout/PageHeader.svelte';
@@ -33,13 +34,22 @@
     let anniversaryDate = $state('');
     let isSavingCouple = $state(false);
 
+    // State Form Google Drive
+    let gdriveFolderUrl = $state('');
+    let storageProvider = $state<'cloudinary' | 'gdrive'>('cloudinary');
+    let serviceAccountEmail = $state('');
+    let verifiedFolderName = $state('');
+    let isVerifyingDrive = $state(false);
+    let isSavingGDrive = $state(false);
+
     // State Global & Alert
     let alertState = $state({ isOpen: false, title: '', message: '' });
     
     let partnerName = $derived(coupleStore.partner?.name || 'Waiting for partner...');
     let myInitials = $derived(authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : '?');
+    let isDriveConnected = $derived(Boolean(coupleStore.data?.gdrive_folder_id || (gdriveFolderUrl.trim() && verifiedFolderName)));
 
-    onMount(() => {
+    onMount(async () => {
         if (!authStore.isAuthenticated) {
             void goto(resolve('/login'));
             return;
@@ -56,7 +66,76 @@
         if (coupleStore.data?.anniversary_date) {
             anniversaryDate = coupleStore.data.anniversary_date.split('T')[0];
         }
+
+        if (coupleStore.data?.gdrive_folder_url) {
+            gdriveFolderUrl = coupleStore.data.gdrive_folder_url;
+        }
+
+        if (coupleStore.data?.storage_provider) {
+            storageProvider = coupleStore.data.storage_provider;
+        }
+
+        try {
+            const config = await gdriveService.getConfig();
+            if (config.service_account_email) {
+                serviceAccountEmail = config.service_account_email;
+            }
+        } catch {
+            // silent ignore
+        }
     });
+
+    // === FITUR TEST GOOGLE DRIVE FOLDER LINK ===
+    async function handleVerifyGDrive() {
+        if (!gdriveFolderUrl.trim()) {
+            alertState = { isOpen: true, title: 'Input Required', message: 'Please enter a Google Drive folder link first.' };
+            return;
+        }
+
+        isVerifyingDrive = true;
+        try {
+            const res = await gdriveService.verifyFolder(gdriveFolderUrl);
+            verifiedFolderName = res.folder_name;
+            if (res.service_account_email) {
+                serviceAccountEmail = res.service_account_email;
+            }
+            alertState = { isOpen: true, title: 'Verified! 🎉', message: `Folder "${res.folder_name}" is verified and accessible!` };
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to verify folder.';
+            alertState = { isOpen: true, title: 'Verification Failed', message };
+        } finally {
+            isVerifyingDrive = false;
+        }
+    }
+
+    // === FITUR SIMPAN PENGATURAN GOOGLE DRIVE ===
+    async function handleSaveGDrive(e: SubmitEvent) {
+        e.preventDefault();
+        isSavingGDrive = true;
+        try {
+            await coupleService.updateCoupleSettings({
+                gdrive_folder_url: gdriveFolderUrl.trim() || undefined,
+                storage_provider: storageProvider
+            });
+            alertState = { isOpen: true, title: 'Settings Saved! 🚀', message: 'Google Drive storage configuration has been saved successfully!' };
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to save Google Drive settings.';
+            alertState = { isOpen: true, title: 'Error', message };
+        } finally {
+            isSavingGDrive = false;
+        }
+    }
+
+    function copyServiceAccountEmail() {
+        if (serviceAccountEmail) {
+            navigator.clipboard.writeText(serviceAccountEmail).then(() => {
+                alertState = { isOpen: true, title: 'Copied!', message: 'Service account email copied to clipboard.' };
+            }).catch(() => {
+                document.execCommand('copy');
+                alertState = { isOpen: true, title: 'Copied!', message: 'Service account email copied.' };
+            });
+        }
+    }
 
     // === FITUR AUTO-UPLOAD AVATAR ===
     async function handleAvatarSelect(e: Event) {
@@ -275,6 +354,122 @@
                 <div class="pt-4">
                     <Button type="submit" size="md" class="w-full shadow-md" isLoading={isSavingCouple}>
                         Save Space Settings
+                    </Button>
+                </div>
+            </form>
+        </section>
+
+        <!-- FORM 3: GOOGLE DRIVE CLOUD STORAGE (10TB) -->
+        <section class="rounded-[36px] bg-white/70 backdrop-blur-2xl p-7 shadow-[0_12px_40px_-16px_rgba(59,130,246,0.15)] border border-white/80 relative overflow-hidden">
+            <div class="absolute -left-10 -bottom-10 h-36 w-36 rounded-full bg-[#93C5FD] opacity-15 blur-3xl pointer-events-none"></div>
+
+            <div class="mb-6 flex items-center justify-between border-b border-blue-100/50 pb-4 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-[14px] bg-blue-50 text-blue-500 shadow-sm border border-blue-100/60">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-[14px] font-black uppercase tracking-widest text-gray-800">Google Drive</h3>
+                        <p class="text-[11px] font-bold text-blue-500">10 TB Cloud Storage</p>
+                    </div>
+                </div>
+
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider {isDriveConnected ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-gray-100 text-gray-500'}">
+                    <span class="h-1.5 w-1.5 rounded-full {isDriveConnected ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}"></span>
+                    {isDriveConnected ? 'Connected' : 'Not Connected'}
+                </span>
+            </div>
+
+            <form onsubmit={handleSaveGDrive} class="space-y-5 relative z-10">
+                <div>
+                    <Input 
+                        label="Google Drive Folder Link" 
+                        type="url" 
+                        placeholder="https://drive.google.com/drive/folders/..." 
+                        bind:value={gdriveFolderUrl} 
+                    />
+                    <p class="text-[11px] font-medium text-gray-400 mt-2 px-1">
+                        Paste link folder Google Drive 10TB Anda. Pastikan akses di-setting <strong>"Anyone with the link can edit"</strong>.
+                    </p>
+                </div>
+
+                {#if verifiedFolderName}
+                    <div class="rounded-2xl bg-emerald-50/80 border border-emerald-200/80 p-3.5 flex items-center gap-3">
+                        <div class="h-8 w-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-emerald-700">Folder Verified</p>
+                            <p class="text-xs font-black text-emerald-900 truncate">{verifiedFolderName}</p>
+                        </div>
+                    </div>
+                {/if}
+
+                <!-- Storage Provider Preference -->
+                <div class="flex flex-col gap-2">
+                    <label for="storageProviderSelect" class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">Default Storage Provider</label>
+                    <div id="storageProviderSelect" class="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onclick={() => storageProvider = 'gdrive'}
+                            class="p-3 rounded-2xl border text-left transition-all duration-300 {storageProvider === 'gdrive' ? 'bg-blue-500 text-white border-blue-600 shadow-md scale-[1.02]' : 'bg-white/50 border-white text-gray-700 hover:bg-white/80'}"
+                        >
+                            <p class="text-xs font-black">Google Drive 10TB</p>
+                            <p class="text-[10px] opacity-80 mt-0.5">High Capacity</p>
+                        </button>
+
+                        <button
+                            type="button"
+                            onclick={() => storageProvider = 'cloudinary'}
+                            class="p-3 rounded-2xl border text-left transition-all duration-300 {storageProvider === 'cloudinary' ? 'bg-gray-900 text-white border-gray-900 shadow-md scale-[1.02]' : 'bg-white/50 border-white text-gray-700 hover:bg-white/80'}"
+                        >
+                            <p class="text-xs font-black">Cloudinary</p>
+                            <p class="text-[10px] opacity-80 mt-0.5">Fast CDN</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Service Account Helper -->
+                {#if serviceAccountEmail}
+                    <div class="rounded-2xl bg-white/40 border border-white/60 p-4 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-gray-500">Service Account Email</span>
+                            <button 
+                                type="button" 
+                                onclick={copyServiceAccountEmail} 
+                                class="text-[11px] font-bold text-blue-600 hover:underline"
+                            >
+                                Copy Email
+                            </button>
+                        </div>
+                        <p class="text-xs font-mono text-gray-700 break-all bg-white/60 p-2 rounded-xl border border-gray-100 select-all">
+                            {serviceAccountEmail}
+                        </p>
+                        <p class="text-[10px] font-medium text-gray-400">
+                            Tips: Anda juga bisa membagikan (Share/Invite) folder Google Drive langsung ke email di atas sebagai Editor.
+                        </p>
+                    </div>
+                {/if}
+
+                <div class="flex gap-2 pt-2">
+                    <Button 
+                        type="button" 
+                        variant="secondary" 
+                        size="md" 
+                        class="flex-1 bg-white border-white shadow-sm" 
+                        isLoading={isVerifyingDrive} 
+                        onclick={handleVerifyGDrive}
+                    >
+                        Test Folder Link
+                    </Button>
+
+                    <Button 
+                        type="submit" 
+                        size="md" 
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-md" 
+                        isLoading={isSavingGDrive}
+                    >
+                        Save Drive Settings
                     </Button>
                 </div>
             </form>

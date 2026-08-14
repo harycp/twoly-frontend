@@ -7,6 +7,9 @@ export interface Couple {
 	invite_code: string;
 	anniversary_date?: string;
 	status: 'pending' | 'active' | 'ended';
+	gdrive_folder_id?: string;
+	gdrive_folder_url?: string;
+	storage_provider?: 'cloudinary' | 'gdrive';
 	created_at: string;
 	partner?: User;
 }
@@ -17,4 +20,10 @@ export interface CreateInviteRequest {
 
 export interface JoinCoupleRequest {
 	invite_code: string;
+}
+
+export interface UpdateCoupleSettingsRequest {
+	anniversary_date?: string;
+	gdrive_folder_url?: string;
+	storage_provider?: 'cloudinary' | 'gdrive';
 }

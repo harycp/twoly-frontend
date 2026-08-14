@@ -1,10 +1,7 @@
 import { apiService } from './api.service';
 import { coupleStore } from '../stores/couple.store.svelte';
-import type { Couple, CreateInviteRequest, JoinCoupleRequest } from '../types/couple.types';
+import type { Couple, CreateInviteRequest, JoinCoupleRequest, UpdateCoupleSettingsRequest } from '../types/couple.types';
 
-export interface UpdateCoupleSettingsRequest {
-    anniversary_date?: string;
-}
 
 export const coupleService = {
     async getMyCouple(): Promise<Couple> {
