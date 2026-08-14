@@ -41,6 +41,7 @@
     let verifiedFolderName = $state('');
     let isVerifyingDrive = $state(false);
     let isSavingGDrive = $state(false);
+    let showPermissionsHelp = $state(false);
 
     // State Global & Alert
     let alertState = $state({ isOpen: false, title: '', message: '' });
@@ -359,117 +360,111 @@
             </form>
         </section>
 
-        <!-- FORM 3: GOOGLE DRIVE CLOUD STORAGE (10TB) -->
-        <section class="rounded-[36px] bg-white/70 backdrop-blur-2xl p-7 shadow-[0_12px_40px_-16px_rgba(59,130,246,0.15)] border border-white/80 relative overflow-hidden">
-            <div class="absolute -left-10 -bottom-10 h-36 w-36 rounded-full bg-[#93C5FD] opacity-15 blur-3xl pointer-events-none"></div>
-
-            <div class="mb-6 flex items-center justify-between border-b border-blue-100/50 pb-4 relative z-10">
+        <!-- FORM 3: MEDIA STORAGE (GOOGLE DRIVE) -->
+        <section class="rounded-[36px] bg-white/70 backdrop-blur-2xl p-7 shadow-[0_12px_40px_-16px_rgba(0,0,0,0.08)] border border-white/80">
+            <div class="mb-6 flex items-center justify-between border-b border-gray-100/50 pb-4">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-[14px] bg-blue-50 text-blue-500 shadow-sm border border-blue-100/60">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                    <div class="flex h-10 w-10 items-center justify-center rounded-[14px] bg-gray-100/80 text-gray-600">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
                     </div>
-                    <div>
-                        <h3 class="text-[14px] font-black uppercase tracking-widest text-gray-800">Google Drive</h3>
-                        <p class="text-[11px] font-bold text-blue-500">10 TB Cloud Storage</p>
-                    </div>
+                    <h3 class="text-[14px] font-black uppercase tracking-widest text-gray-800">Media Storage</h3>
                 </div>
 
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider {isDriveConnected ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-gray-100 text-gray-500'}">
-                    <span class="h-1.5 w-1.5 rounded-full {isDriveConnected ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}"></span>
-                    {isDriveConnected ? 'Connected' : 'Not Connected'}
-                </span>
+                {#if isDriveConnected}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                        Drive Connected
+                    </span>
+                {/if}
             </div>
 
-            <form onsubmit={handleSaveGDrive} class="space-y-5 relative z-10">
-                <div>
+            <form onsubmit={handleSaveGDrive} class="space-y-5">
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between ml-1">
+                        <label for="gdriveFolderUrl" class="text-[12px] font-black text-gray-500 uppercase tracking-widest">Google Drive Folder Link</label>
+                        {#if gdriveFolderUrl.trim()}
+                            <button 
+                                type="button" 
+                                onclick={handleVerifyGDrive} 
+                                disabled={isVerifyingDrive}
+                                class="text-[11px] font-bold text-[#FDA4AF] hover:text-[#FB7185] transition-colors disabled:opacity-50"
+                            >
+                                {isVerifyingDrive ? 'Verifying...' : 'Verify Link'}
+                            </button>
+                        {/if}
+                    </div>
                     <Input 
-                        label="Google Drive Folder Link" 
+                        id="gdriveFolderUrl"
                         type="url" 
                         placeholder="https://drive.google.com/drive/folders/..." 
                         bind:value={gdriveFolderUrl} 
                     />
-                    <p class="text-[11px] font-medium text-gray-400 mt-2 px-1">
-                        Paste link folder Google Drive 10TB Anda. Pastikan akses di-setting <strong>"Anyone with the link can edit"</strong>.
-                    </p>
+                    {#if verifiedFolderName}
+                        <p class="text-[11px] font-bold text-emerald-600 ml-1 flex items-center gap-1">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            {verifiedFolderName}
+                        </p>
+                    {/if}
                 </div>
 
-                {#if verifiedFolderName}
-                    <div class="rounded-2xl bg-emerald-50/80 border border-emerald-200/80 p-3.5 flex items-center gap-3">
-                        <div class="h-8 w-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[10px] font-black uppercase tracking-wider text-emerald-700">Folder Verified</p>
-                            <p class="text-xs font-black text-emerald-900 truncate">{verifiedFolderName}</p>
-                        </div>
-                    </div>
-                {/if}
-
                 <!-- Storage Provider Preference -->
-                <div class="flex flex-col gap-2">
-                    <label for="storageProviderSelect" class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">Default Storage Provider</label>
-                    <div id="storageProviderSelect" class="grid grid-cols-2 gap-2">
+                <div class="flex flex-col gap-2 w-full">
+                    <span class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">Storage Provider</span>
+                    <div class="flex p-1.5 bg-white/40 backdrop-blur-xl rounded-[20px] border border-white/60 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.02)]">
                         <button
                             type="button"
                             onclick={() => storageProvider = 'gdrive'}
-                            class="p-3 rounded-2xl border text-left transition-all duration-300 {storageProvider === 'gdrive' ? 'bg-blue-500 text-white border-blue-600 shadow-md scale-[1.02]' : 'bg-white/50 border-white text-gray-700 hover:bg-white/80'}"
+                            class="flex-1 py-2.5 text-[11px] font-black uppercase tracking-wider rounded-[14px] transition-all duration-300 {storageProvider === 'gdrive' ? 'bg-white text-gray-900 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.06)] border border-gray-50' : 'text-gray-400 hover:text-gray-600'}"
                         >
-                            <p class="text-xs font-black">Google Drive 10TB</p>
-                            <p class="text-[10px] opacity-80 mt-0.5">High Capacity</p>
+                            Google Drive
                         </button>
-
                         <button
                             type="button"
                             onclick={() => storageProvider = 'cloudinary'}
-                            class="p-3 rounded-2xl border text-left transition-all duration-300 {storageProvider === 'cloudinary' ? 'bg-gray-900 text-white border-gray-900 shadow-md scale-[1.02]' : 'bg-white/50 border-white text-gray-700 hover:bg-white/80'}"
+                            class="flex-1 py-2.5 text-[11px] font-black uppercase tracking-wider rounded-[14px] transition-all duration-300 {storageProvider === 'cloudinary' ? 'bg-white text-gray-900 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.06)] border border-gray-50' : 'text-gray-400 hover:text-gray-600'}"
                         >
-                            <p class="text-xs font-black">Cloudinary</p>
-                            <p class="text-[10px] opacity-80 mt-0.5">Fast CDN</p>
+                            Cloudinary
                         </button>
                     </div>
                 </div>
 
-                <!-- Service Account Helper -->
+                <!-- Service Account Collapsible Guide -->
                 {#if serviceAccountEmail}
-                    <div class="rounded-2xl bg-white/40 border border-white/60 p-4 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-black uppercase tracking-wider text-gray-500">Service Account Email</span>
-                            <button 
-                                type="button" 
-                                onclick={copyServiceAccountEmail} 
-                                class="text-[11px] font-bold text-blue-600 hover:underline"
-                            >
-                                Copy Email
-                            </button>
-                        </div>
-                        <p class="text-xs font-mono text-gray-700 break-all bg-white/60 p-2 rounded-xl border border-gray-100 select-all">
-                            {serviceAccountEmail}
-                        </p>
-                        <p class="text-[10px] font-medium text-gray-400">
-                            Tips: Anda juga bisa membagikan (Share/Invite) folder Google Drive langsung ke email di atas sebagai Editor.
-                        </p>
+                    <div class="pt-1">
+                        <button
+                            type="button"
+                            onclick={() => showPermissionsHelp = !showPermissionsHelp}
+                            class="text-[11px] font-bold text-gray-400 hover:text-gray-600 flex items-center gap-1.5 transition-colors ml-1"
+                        >
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>{showPermissionsHelp ? 'Hide guide' : 'Folder access guide & email'}</span>
+                        </button>
+
+                        {#if showPermissionsHelp}
+                            <div class="mt-3 p-4 rounded-2xl bg-white/50 border border-white/80 space-y-2.5 text-[12px] text-gray-600">
+                                <p class="font-medium leading-relaxed">
+                                    Set folder access to <strong>"Anyone with the link can edit"</strong>, or invite this email as Editor:
+                                </p>
+                                <div class="flex items-center gap-2">
+                                    <span class="flex-1 bg-white px-3 py-2 rounded-xl text-[11px] text-gray-800 truncate border border-gray-100 font-mono">
+                                        {serviceAccountEmail}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onclick={copyServiceAccountEmail}
+                                        class="px-3 py-2 rounded-xl bg-gray-900 text-white text-[11px] font-bold shrink-0 active:scale-95 transition-transform"
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
+                            </div>
+                        {/if}
                     </div>
                 {/if}
 
-                <div class="flex gap-2 pt-2">
-                    <Button 
-                        type="button" 
-                        variant="secondary" 
-                        size="md" 
-                        class="flex-1 bg-white border-white shadow-sm" 
-                        isLoading={isVerifyingDrive} 
-                        onclick={handleVerifyGDrive}
-                    >
-                        Test Folder Link
-                    </Button>
-
-                    <Button 
-                        type="submit" 
-                        size="md" 
-                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-md" 
-                        isLoading={isSavingGDrive}
-                    >
-                        Save Drive Settings
+                <div class="pt-3">
+                    <Button type="submit" variant="secondary" size="md" class="w-full shadow-sm hover:shadow-md transition-all border-gray-100" isLoading={isSavingGDrive}>
+                        Save Storage Settings
                     </Button>
                 </div>
             </form>

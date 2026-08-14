@@ -15,7 +15,6 @@ export interface VerifyGDriveFolderResponse {
 export interface GDriveConfigInfoResponse {
     service_account_email: string;
     is_configured: boolean;
-    max_storage_capacity: string;
 }
 
 export interface SyncGDrivePhotosRequest {

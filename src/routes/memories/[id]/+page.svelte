@@ -209,8 +209,8 @@
         if (!coupleStore.data?.gdrive_folder_url && !coupleStore.data?.gdrive_folder_id) {
             alertState = { 
                 isOpen: true, 
-                title: 'Google Drive Not Configured', 
-                message: 'Silakan hubungkan folder Google Drive 10TB Anda di menu Settings terlebih dahulu.' 
+                title: 'Google Drive Not Connected', 
+                message: 'Silakan hubungkan folder Google Drive Anda di menu Settings terlebih dahulu.' 
             };
             return;
         }
@@ -399,17 +399,17 @@
                     <Button 
                         variant="secondary" 
                         size="md" 
-                        class="h-10 px-3 text-[12px] bg-blue-50/80 border-blue-200/60 text-blue-600 shadow-sm hover:bg-blue-100" 
+                        class="h-10 px-3.5 text-[12px] bg-white/60 border-white text-gray-800 shadow-sm hover:bg-white/90" 
                         onclick={handleSyncGDrive} 
                         isLoading={isSyncingDrive}
-                        title="Sync media from your Google Drive 10TB folder"
+                        title="Sync media from Google Drive"
                     >
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        Sync Drive
+                        <svg class="h-4 w-4 text-[#FDA4AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Sync
                     </Button>
 
-                    <Button variant="secondary" size="md" class="h-10 px-4 text-[12px] bg-white/60 border-white text-gray-800 shadow-sm" onclick={() => fileInput.click()} isLoading={isUploading}>
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <Button variant="secondary" size="md" class="h-10 px-4 text-[12px] bg-white/60 border-white text-gray-800 shadow-sm hover:bg-white/90" onclick={() => fileInput.click()} isLoading={isUploading}>
+                        <svg class="h-4 w-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                         Add Media
                     </Button>
                 </div>
