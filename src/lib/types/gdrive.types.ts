@@ -27,3 +27,7 @@ export interface SyncGDrivePhotosResponse {
     photos: MemoryPhoto[];
     message: string;
 }
+
+export interface GDriveAuthURLResponse {
+    auth_url: string;
+}

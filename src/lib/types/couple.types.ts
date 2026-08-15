@@ -10,6 +10,7 @@ export interface Couple {
 	gdrive_folder_id?: string;
 	gdrive_folder_url?: string;
 	storage_provider?: 'cloudinary' | 'gdrive';
+	gdrive_connected?: boolean;
 	created_at: string;
 	partner?: User;
 }
