@@ -12,7 +12,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function checkDatabaseConnection(): Promise<{ isConnected: boolean; errorMessage: string }> {
     try {
-        const { error } = await supabase.from('couple_touches').select('id').limit(1);
+        const { error } = await supabase.from('couples').select('id').limit(1);
         
         if (error) {
             console.error("[Supabase Service] DB Check Error:", error.message);

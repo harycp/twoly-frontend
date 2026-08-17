@@ -1,0 +1,68 @@
+export type DrawingTool = 'pen' | 'brush' | 'eraser';
+
+export interface StrokePoint {
+	x: number; // Normalized 0-1
+	y: number; // Normalized 0-1
+	p?: number; // Pressure 0-1 (optional)
+}
+
+export interface StrokeRecord {
+	id: string;
+	senderId: string;
+	tool: DrawingTool;
+	color: string;
+	width: number;
+	opacity: number;
+	points: StrokePoint[];
+	timestamp: number;
+}
+
+export type BroadcastPayload =
+	| {
+			type: 'stroke_start';
+			stroke: StrokeRecord;
+	  }
+	| {
+			type: 'stroke_chunk';
+			strokeId: string;
+			points: StrokePoint[];
+	  }
+	| {
+			type: 'stroke_end';
+			strokeId: string;
+	  }
+	| {
+			type: 'action';
+			action: 'undo' | 'redo' | 'clear';
+			strokeId?: string;
+			senderId: string;
+	  }
+	| {
+			type: 'cursor_move';
+			senderId: string;
+			senderName: string;
+			x: number;
+			y: number;
+			isDrawing: boolean;
+	  };
+
+export interface DoodleItem {
+	id: string;
+	couple_id: string;
+	saved_by_id: string;
+	saved_by_name?: string;
+	image_url: string;
+	thumbnail_url?: string;
+	title?: string | null;
+	stroke_count: number;
+	storage_provider: string;
+	created_at: string;
+}
+
+export interface DoodleActivity {
+	id: string;
+	couple_id: string;
+	sender_id: string;
+	doodle_canvas_id?: string;
+	created_at: string;
+}

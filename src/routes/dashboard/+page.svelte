@@ -11,12 +11,12 @@
     import { memoryService } from '$lib/services/memory.service';
     import { datePlanService } from '$lib/services/datePlan.service';
     import { loveNoteService } from '$lib/services/loveNote.service'; 
-    import { supabase } from '$lib/services/supabase.service';
+    import { doodleService } from '$lib/services/doodle.service';
     
     import MobileShell from '$lib/components/layout/MobileShell.svelte';
     import PageHeader from '$lib/components/layout/PageHeader.svelte';
     import MemoryCover from '$lib/components/memories/MemoryCover.svelte'; 
-    import TouchStreakRibbon from '$lib/components/dashboard/TouchStreakRibbon.svelte';
+    import DoodleStreakRibbon from '$lib/components/dashboard/DoodleStreakRibbon.svelte';
     import logo from '$lib/assets/logos/twoly.webp';
     import HeartIcon from '$lib/components/icons/HeartIcon.svelte';
     
@@ -131,32 +131,10 @@
         queryFn: () => loveNoteService.getLoveNotes()
     }));
 
-    interface TouchEntry {
-        created_at: string;
-        sender_id: string;
-    }
-
-    const touchStreakQuery = createQuery(() => ({
-        queryKey: ['touch-streak', coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id],
+    const doodleStreakQuery = createQuery(() => ({
+        queryKey: ['doodle-streak', coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id],
         enabled: !!(coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id),
-        queryFn: async () => {
-            const coupleId = coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id;
-
-            if (!coupleId) return [] as TouchEntry[];
-
-            const { data, error } = await supabase
-                .from('couple_touches')
-                .select('created_at, sender_id')
-                .eq('couple_id', coupleId)
-                .order('created_at', { ascending: false })
-                .limit(180);
-
-            if (error) {
-                throw error;
-            }
-
-            return (data ?? []) as TouchEntry[];
-        }
+        queryFn: () => doodleService.getStreakActivities()
     }));
 
     let recentMemories = $derived(memoriesQuery.data?.slice(0, 4) || []);
@@ -188,39 +166,45 @@
         return `${year}-${month}-${day}`;
     }
 
-    let touchStreak = $derived.by(() => {
-            const touches = touchStreakQuery.data || [];
+    let doodleStreak = $derived.by(() => {
+        const activities = doodleStreakQuery.data || [];
+        if (activities.length === 0) return 0;
 
-            if (touches.length === 0) return 0;
+        const meId = myId;
+        const partnerId = coupleStore.partner?.id;
+        if (!meId || !partnerId) return 0;
 
-            const meId = myId;
-            const partnerId = coupleStore.partner?.id;
-            if (!meId || !partnerId) return 0;
+        // build map dateKey => map of sender ids on that day
+        const daySenders: Record<string, Record<string, true>> = {};
+        for (const act of activities) {
+            const key = toDateKey(act.created_at);
+            if (!daySenders[key]) daySenders[key] = {};
+            daySenders[key][String(act.sender_id)] = true;
+        }
 
-            // build map dateKey => map of sender ids on that day (plain object to avoid Svelte Map/Set warnings)
-            const daySenders: Record<string, Record<string, true>> = {};
-            for (const t of touches) {
-                const key = toDateKey(t.created_at);
-                if (!daySenders[key]) daySenders[key] = {};
-                daySenders[key][String(t.sender_id)] = true;
+        const today = new SvelteDate();
+        today.setHours(0, 0, 0, 0);
+
+        let streak = 0;
+        const cursor = new SvelteDate(today);
+
+        // Check if there's activity today or yesterday to continue streak
+        while (true) {
+            const key = toDateKey(cursor);
+            const senders = daySenders[key];
+            if (!senders) {
+                // If today has no activity yet, allow checking yesterday to not break streak mid-day
+                if (streak === 0 && cursor.getTime() === today.getTime()) {
+                    cursor.setDate(cursor.getDate() - 1);
+                    continue;
+                }
+                break;
             }
+            streak += 1;
+            cursor.setDate(cursor.getDate() - 1);
+        }
 
-            const today = new SvelteDate();
-            today.setHours(0, 0, 0, 0);
-
-            let streak = 0;
-            const cursor = new SvelteDate(today);
-
-            while (true) {
-                const key = toDateKey(cursor);
-                const senders = daySenders[key];
-                if (!senders) break;
-                if (!(senders[String(meId)] && senders[String(partnerId)])) break;
-                streak += 1;
-                cursor.setDate(cursor.getDate() - 1);
-            }
-
-            return streak;
+        return streak;
     });
 
     const formatDateClean = (dateString: string) => {
@@ -344,12 +328,12 @@
             </a>
         </div>
 
-        <!-- TOUCH RHYTHM SECTION -->
+        <!-- DOODLE STREAK SECTION -->
         <section class="pt-1">
             <div class="mb-4 flex items-end justify-between px-1">
                 <div>
-                    <h2 class="text-2xl font-black text-gray-900 tracking-tight">Touch rhythm</h2>
-                    <p class="text-[12px] font-black text-gray-400 mt-1 uppercase tracking-[0.15em]">Keep the chain alive</p>
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight">Doodle streak</h2>
+                    <p class="text-[12px] font-black text-gray-400 mt-1 uppercase tracking-[0.15em]">Create art together</p>
                 </div>
                 <div class="hidden sm:flex items-center gap-2 rounded-full bg-white/70 border border-white px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 shadow-sm">
                     <span class="h-2 w-2 rounded-full bg-[#FB7185]"></span>
@@ -357,7 +341,7 @@
                 </div>
             </div>
 
-            <TouchStreakRibbon streak={touchStreak} />
+            <DoodleStreakRibbon streak={doodleStreak} />
         </section>
 
         <!-- WIDGET ROW: Smart Blocks -->
