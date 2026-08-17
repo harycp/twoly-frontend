@@ -44,6 +44,11 @@ export type BroadcastPayload =
 			x: number;
 			y: number;
 			isDrawing: boolean;
+	  }
+	| {
+			type: 'bg_change';
+			bgColor: string;
+			senderId: string;
 	  };
 
 export interface DoodleItem {
@@ -57,6 +62,11 @@ export interface DoodleItem {
 	stroke_count: number;
 	storage_provider: string;
 	created_at: string;
+}
+
+export interface ActiveCanvasPayload {
+	strokes: StrokeRecord[];
+	bgColor: string;
 }
 
 export interface ActiveCanvasData {

@@ -28,7 +28,10 @@
 
 	let currentTool = $state<DrawingTool>('pen');
 	let currentColor = $state<string>('#FB7185');
+	let currentBgColor = $state<string>('#FFF7ED');
 	let currentWidth = $state<number>(5);
+
+	let colorTarget = $state<'pen' | 'bg'>('pen');
 
 	let strokes = $state<StrokeRecord[]>([]);
 	let isDrawing = $state(false);
@@ -54,6 +57,16 @@
 		'#F59E0B'  // Amber Gold
 	];
 
+	const bgPresets = [
+		'#FFF7ED', // Cream Paper
+		'#FFFFFF', // Pure White
+		'#1E293B', // Dark Slate
+		'#FDF2F8', // Rose Paper
+		'#F5F3FF', // Lavender Paper
+		'#F0FDF4', // Mint Paper
+		'#FEF3C7'  // Warm Amber
+	];
+
 	const sizePresets = [
 		{ label: 'S', value: 3 },
 		{ label: 'M', value: 6 },
@@ -72,11 +85,21 @@
 		if (syncDebounceTimeout) clearTimeout(syncDebounceTimeout);
 		syncDebounceTimeout = setTimeout(async () => {
 			try {
-				await doodleService.syncActiveCanvas(strokes);
+				await doodleService.syncActiveCanvas(strokes, currentBgColor);
 			} catch (e) {
 				console.error('Failed to sync active canvas:', e);
 			}
 		}, 1000);
+	}
+
+	function handleBgColorChange(newBg: string) {
+		currentBgColor = newBg;
+		doodleChannel?.send({
+			type: 'broadcast',
+			event: 'doodle_event',
+			payload: { type: 'bg_change', bgColor: newBg, senderId: myId }
+		});
+		debounceSyncBackend();
 	}
 
 	function redrawCanvas() {
@@ -111,9 +134,12 @@
 
 	async function loadActiveCanvas() {
 		try {
-			const activeStrokes = await doodleService.getActiveCanvas();
-			if (activeStrokes && activeStrokes.length > 0) {
-				strokes = activeStrokes;
+			const activeData = await doodleService.getActiveCanvas();
+			if (activeData) {
+				strokes = activeData.strokes || [];
+				if (activeData.bgColor) {
+					currentBgColor = activeData.bgColor;
+				}
 				redrawCanvas();
 			}
 		} catch (e) {
@@ -164,6 +190,8 @@
 						partnerActiveStroke = null;
 						redrawCanvas();
 					}
+				} else if (payload.type === 'bg_change') {
+					currentBgColor = payload.bgColor;
 				}
 			})
 			.subscribe();
@@ -251,7 +279,6 @@
 		};
 		drawStroke(ctx, tempStroke, rect.width, rect.height);
 
-		// Send stroke chunk to partner using consistent currentStrokeId
 		if (currentPoints.length % 2 === 0) {
 			doodleChannel?.send({
 				type: 'broadcast',
@@ -338,7 +365,7 @@
 		isSaving = true;
 
 		try {
-			const blob = await exportCanvasToBlob(canvasRef, '#FFF7ED', 'image/webp', 0.9);
+			const blob = await exportCanvasToBlob(canvasRef, currentBgColor, 'image/webp', 0.9);
 			await doodleService.saveDoodle(blob, 'Quick Sketch from Dashboard', strokes.length);
 			showFeedback('Saved to Doodle Vault');
 		} catch (error) {
@@ -419,7 +446,8 @@
 		onpointermove={handlePointerMove}
 		onpointerup={handlePointerUp}
 		onpointercancel={handlePointerUp}
-		class="relative w-full touch-none select-none overflow-hidden rounded-2xl border border-gray-100 bg-[#FFF7ED] shadow-inner cursor-crosshair transition-all duration-300 {isControlsHidden ? 'h-[400px] sm:h-[460px]' : 'h-[320px] sm:h-[380px]'}"
+		class="relative w-full touch-none select-none overflow-hidden rounded-2xl border border-gray-100 shadow-inner cursor-crosshair transition-all duration-300 {isControlsHidden ? 'h-[400px] sm:h-[460px]' : 'h-[320px] sm:h-[380px]'}"
+		style="background-color: {currentBgColor};"
 	>
 		<canvas bind:this={canvasRef} class="absolute inset-0 h-full w-full pointer-events-none"></canvas>
 
@@ -488,29 +516,76 @@
 					</button>
 				</div>
 
+				<!-- Target Mode Switcher (Pen Color vs Canvas BG) -->
+				<div class="flex items-center rounded-xl bg-gray-100/90 p-0.5 border border-white">
+					<button
+						type="button"
+						aria-label="Pen Color Mode"
+						onclick={() => (colorTarget = 'pen')}
+						class="flex h-7 px-1.5 items-center rounded-lg text-[10px] font-black uppercase transition-all {colorTarget === 'pen'
+							? 'bg-white text-rose-600 shadow-xs'
+							: 'text-gray-400 hover:text-gray-700'}"
+						title="Pen Color"
+					>
+						Pen
+					</button>
+					<button
+						type="button"
+						aria-label="Canvas Background Mode"
+						onclick={() => (colorTarget = 'bg')}
+						class="flex h-7 px-1.5 items-center rounded-lg text-[10px] font-black uppercase transition-all {colorTarget === 'bg'
+							? 'bg-white text-rose-600 shadow-xs'
+							: 'text-gray-400 hover:text-gray-700'}"
+						title="Canvas Background"
+					>
+						BG
+					</button>
+				</div>
+
 				<!-- Color Palette Dots -->
 				<div class="flex items-center gap-1.5 overflow-x-auto py-0.5 px-1 hide-scrollbar">
-					{#each presetColors as color (color)}
-						{@const isSelected = currentColor.toLowerCase() === color.toLowerCase()}
-						<button
-							type="button"
-							aria-label="Color {color}"
-							onclick={() => {
-								currentColor = color;
-								if (currentTool === 'eraser') currentTool = 'pen';
-							}}
-							class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-transform active:scale-90 {isSelected
-								? 'scale-115 ring-2 ring-rose-400 ring-offset-1'
-								: 'hover:scale-105'}"
-							style="background-color: {color};"
-						>
-							{#if isSelected}
-								<svg class="h-3 w-3 text-white drop-shadow-xs" viewBox="0 0 20 20" fill="currentColor">
-									<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-								</svg>
-							{/if}
-						</button>
-					{/each}
+					{#if colorTarget === 'bg'}
+						{#each bgPresets as color (color)}
+							{@const isSelected = currentBgColor.toLowerCase() === color.toLowerCase()}
+							<button
+								type="button"
+								aria-label="Background Color {color}"
+								onclick={() => handleBgColorChange(color)}
+								class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-transform active:scale-90 {isSelected
+									? 'scale-115 ring-2 ring-rose-400 ring-offset-1'
+									: 'hover:scale-105'}"
+								style="background-color: {color}; {color === '#FFFFFF' ? 'border: 1px solid rgba(0,0,0,0.15);' : ''}"
+							>
+								{#if isSelected}
+									<svg class="h-3 w-3 {color === '#FFFFFF' ? 'text-gray-900' : 'text-white'} drop-shadow-xs" viewBox="0 0 20 20" fill="currentColor">
+										<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+									</svg>
+								{/if}
+							</button>
+						{/each}
+					{:else}
+						{#each presetColors as color (color)}
+							{@const isSelected = currentColor.toLowerCase() === color.toLowerCase()}
+							<button
+								type="button"
+								aria-label="Color {color}"
+								onclick={() => {
+									currentColor = color;
+									if (currentTool === 'eraser') currentTool = 'pen';
+								}}
+								class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-transform active:scale-90 {isSelected
+									? 'scale-115 ring-2 ring-rose-400 ring-offset-1'
+									: 'hover:scale-105'}"
+								style="background-color: {color};"
+							>
+								{#if isSelected}
+									<svg class="h-3 w-3 text-white drop-shadow-xs" viewBox="0 0 20 20" fill="currentColor">
+										<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+									</svg>
+								{/if}
+							</button>
+						{/each}
+					{/if}
 				</div>
 
 				<!-- Stroke Width Presets -->

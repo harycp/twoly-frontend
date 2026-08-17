@@ -1,5 +1,5 @@
 import { apiService } from './api.service';
-import type { DoodleItem, ActiveCanvasData, StrokeRecord } from '../types/doodle.types';
+import type { DoodleItem, ActiveCanvasData, StrokeRecord, ActiveCanvasPayload } from '../types/doodle.types';
 
 class DoodleService {
 	async saveDoodle(blob: Blob, title?: string, strokeCount: number = 0): Promise<DoodleItem> {
@@ -23,20 +23,27 @@ class DoodleService {
 		return apiService.delete<void>(`/doodles/${id}`);
 	}
 
-	async getActiveCanvas(): Promise<StrokeRecord[]> {
+	async getActiveCanvas(): Promise<ActiveCanvasPayload> {
 		try {
 			const res = await apiService.get<ActiveCanvasData>('/doodles/active');
-			if (!res || !res.strokes) return [];
-			return JSON.parse(res.strokes);
+			if (!res || !res.strokes) return { strokes: [], bgColor: '#FFF7ED' };
+			const parsed = JSON.parse(res.strokes);
+			if (Array.isArray(parsed)) {
+				return { strokes: parsed, bgColor: '#FFF7ED' };
+			}
+			return {
+				strokes: parsed.strokes || [],
+				bgColor: parsed.bgColor || '#FFF7ED'
+			};
 		} catch {
-			return [];
+			return { strokes: [], bgColor: '#FFF7ED' };
 		}
 	}
 
-	async syncActiveCanvas(strokes: StrokeRecord[]): Promise<void> {
+	async syncActiveCanvas(strokes: StrokeRecord[], bgColor: string = '#FFF7ED'): Promise<void> {
 		try {
 			await apiService.put<void>('/doodles/active', {
-				strokes: JSON.stringify(strokes)
+				strokes: JSON.stringify({ strokes, bgColor })
 			});
 		} catch {
 			// ignore sync failure

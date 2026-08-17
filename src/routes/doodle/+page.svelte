@@ -30,6 +30,7 @@
 	// Drawing States
 	let currentTool = $state<DrawingTool>('pen');
 	let currentColor = $state<string>('#FB7185');
+	let currentBgColor = $state<string>('#FFF7ED');
 	let currentWidth = $state<number>(7);
 	let strokes = $state<StrokeRecord[]>([]);
 	let undoStack = $state<StrokeRecord[]>([]);
@@ -168,7 +169,21 @@
 				}, 4000);
 				break;
 			}
+			case 'bg_change': {
+				currentBgColor = payload.bgColor;
+				break;
+			}
 		}
+	}
+
+	function handleBgColorChange(newBg: string) {
+		currentBgColor = newBg;
+		sendBroadcast({
+			type: 'bg_change',
+			bgColor: newBg,
+			senderId: myId
+		});
+		debounceSyncBackend();
 	}
 
 	let syncDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -177,7 +192,7 @@
 		if (syncDebounceTimeout) clearTimeout(syncDebounceTimeout);
 		syncDebounceTimeout = setTimeout(async () => {
 			try {
-				await doodleService.syncActiveCanvas(strokes);
+				await doodleService.syncActiveCanvas(strokes, currentBgColor);
 			} catch (e) {
 				console.error('Failed to sync active canvas:', e);
 			}
@@ -186,9 +201,12 @@
 
 	async function loadActiveCanvas() {
 		try {
-			const activeStrokes = await doodleService.getActiveCanvas();
-			if (activeStrokes && activeStrokes.length > 0) {
-				strokes = activeStrokes;
+			const activeData = await doodleService.getActiveCanvas();
+			if (activeData) {
+				strokes = activeData.strokes || [];
+				if (activeData.bgColor) {
+					currentBgColor = activeData.bgColor;
+				}
 			}
 		} catch (e) {
 			console.error('Failed to load active canvas:', e);
@@ -311,7 +329,7 @@
 		if (!canvasEl) return;
 
 		try {
-			const blob = await exportCanvasToBlob(canvasEl, '#FFF7ED', 'image/webp', 0.9);
+			const blob = await exportCanvasToBlob(canvasEl, currentBgColor, 'image/webp', 0.9);
 			savePreviewUrl = URL.createObjectURL(blob);
 			isSaveModalOpen = true;
 		} catch (error) {
@@ -326,7 +344,7 @@
 
 		isSaving = true;
 		try {
-			const blob = await exportCanvasToBlob(canvasEl, '#FFF7ED', 'image/webp', 0.9);
+			const blob = await exportCanvasToBlob(canvasEl, currentBgColor, 'image/webp', 0.9);
 			await doodleService.saveDoodle(blob, title, strokes.length);
 
 			isSaveModalOpen = false;
@@ -365,7 +383,7 @@
 	}
 </script>
 
-<div class="fixed inset-0 flex flex-col bg-[#FFF7ED] font-sans select-none overflow-hidden touch-none">
+<div class="fixed inset-0 flex flex-col font-sans select-none overflow-hidden touch-none transition-colors duration-300" style="background-color: {currentBgColor};">
 	<!-- HEADER BAR -->
 	<header class="relative z-40 flex items-center justify-between px-5 pt-4 pb-2">
 		<!-- Back Button -->
@@ -434,7 +452,7 @@
 	{/if}
 
 	<!-- MAIN CANVAS SPACE -->
-	<main class="relative flex-1 w-full overflow-hidden bg-[#FFF7ED]">
+	<main class="relative flex-1 w-full overflow-hidden transition-colors duration-300" style="background-color: {currentBgColor};">
 		<!-- Partner Live Floating Cursor -->
 		<PartnerCursor
 			x={partnerX}
@@ -479,12 +497,14 @@
 	<DoodleToolbar
 		{currentTool}
 		{currentColor}
+		{currentBgColor}
 		{currentWidth}
 		canUndo={strokes.length > 0}
 		canRedo={undoStack.length > 0}
 		strokeCount={strokes.length}
 		onToolChange={(tool) => (currentTool = tool)}
 		onColorChange={(color) => (currentColor = color)}
+		onBgColorChange={handleBgColorChange}
 		onWidthChange={(w) => (currentWidth = w)}
 		onUndo={handleUndo}
 		onRedo={handleRedo}
