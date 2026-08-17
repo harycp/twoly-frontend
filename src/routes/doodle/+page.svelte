@@ -364,12 +364,10 @@
 			<span class="text-[11px] font-black uppercase tracking-wider text-gray-700">
 				{#if isPartnerOnline && isSubscribed}
 					<span class="text-rose-600">{partnerName} is here 🎨</span>
-				{:else if isSubscribed}
-					<span>Waiting for {partnerName}...</span>
 				{:else if connectionStatus === 'error'}
-					<span class="text-red-500">Sync Error</span>
+					<span class="text-red-500">Offline Canvas</span>
 				{:else}
-					<span>Connecting...</span>
+					<span>Canvas Ready ✨</span>
 				{/if}
 			</span>
 		</div>

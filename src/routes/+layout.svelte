@@ -11,7 +11,6 @@
 	import { coupleService } from '$lib/services/couple.service';
 	import { coupleStore } from '$lib/stores/couple.store.svelte';
 	import { uiStore } from '$lib/stores/ui.store.svelte';
-	import DoodleStreakMilestoneModal from '$lib/components/dashboard/DoodleStreakMilestoneModal.svelte';
 	import { supabase } from '$lib/services/supabase.service';
 
 	const queryClient = new QueryClient({
@@ -262,12 +261,5 @@
 >
 	<QueryClientProvider client={queryClient}>
 		{@render children()}
-
-		{#if uiStore.milestonePopupData}
-			<DoodleStreakMilestoneModal
-				milestone={uiStore.milestonePopupData.milestone}
-				onClose={() => uiStore.closeMilestone()}
-			/>
-		{/if}
 	</QueryClientProvider>
 </div>

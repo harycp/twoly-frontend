@@ -16,7 +16,7 @@
     import MobileShell from '$lib/components/layout/MobileShell.svelte';
     import PageHeader from '$lib/components/layout/PageHeader.svelte';
     import MemoryCover from '$lib/components/memories/MemoryCover.svelte'; 
-    import DoodleStreakRibbon from '$lib/components/dashboard/DoodleStreakRibbon.svelte';
+    import DashboardDoodleCard from '$lib/components/dashboard/DashboardDoodleCard.svelte';
     import logo from '$lib/assets/logos/twoly.webp';
     import HeartIcon from '$lib/components/icons/HeartIcon.svelte';
     
@@ -131,14 +131,15 @@
         queryFn: () => loveNoteService.getLoveNotes()
     }));
 
-    const doodleStreakQuery = createQuery(() => ({
-        queryKey: ['doodle-streak', coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id],
+    const latestDoodlesQuery = createQuery(() => ({
+        queryKey: ['doodles-latest', coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id],
         enabled: !!(coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id),
-        queryFn: () => doodleService.getStreakActivities()
+        queryFn: () => doodleService.getDoodles()
     }));
 
     let recentMemories = $derived(memoriesQuery.data?.slice(0, 4) || []);
     let upcomingDates = $derived(datesQuery.data || []);
+    let latestDoodle = $derived(latestDoodlesQuery.data && latestDoodlesQuery.data.length > 0 ? latestDoodlesQuery.data[0] : null);
     
     let closestPlan = $derived(upcomingDates.length > 0 ? upcomingDates[0] : null);
     
@@ -155,56 +156,6 @@
     let lockedNotesCount = $derived.by(() => {
         const notes = notesQuery.data || [];
         return notes.filter(n => !n.is_opened && n.receiver_id === myId).length;
-    });
-
-    function toDateKey(value: string | Date) {
-        const date = value instanceof Date ? value : new Date(value);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-
-        return `${year}-${month}-${day}`;
-    }
-
-    let doodleStreak = $derived.by(() => {
-        const activities = doodleStreakQuery.data || [];
-        if (activities.length === 0) return 0;
-
-        const meId = myId;
-        const partnerId = coupleStore.partner?.id;
-        if (!meId || !partnerId) return 0;
-
-        // build map dateKey => map of sender ids on that day
-        const daySenders: Record<string, Record<string, true>> = {};
-        for (const act of activities) {
-            const key = toDateKey(act.created_at);
-            if (!daySenders[key]) daySenders[key] = {};
-            daySenders[key][String(act.sender_id)] = true;
-        }
-
-        const today = new SvelteDate();
-        today.setHours(0, 0, 0, 0);
-
-        let streak = 0;
-        const cursor = new SvelteDate(today);
-
-        // Check if there's activity today or yesterday to continue streak
-        while (true) {
-            const key = toDateKey(cursor);
-            const senders = daySenders[key];
-            if (!senders) {
-                // If today has no activity yet, allow checking yesterday to not break streak mid-day
-                if (streak === 0 && cursor.getTime() === today.getTime()) {
-                    cursor.setDate(cursor.getDate() - 1);
-                    continue;
-                }
-                break;
-            }
-            streak += 1;
-            cursor.setDate(cursor.getDate() - 1);
-        }
-
-        return streak;
     });
 
     const formatDateClean = (dateString: string) => {
@@ -328,21 +279,8 @@
             </a>
         </div>
 
-        <!-- DOODLE STREAK SECTION -->
-        <section class="pt-1">
-            <div class="mb-4 flex items-end justify-between px-1">
-                <div>
-                    <h2 class="text-2xl font-black text-gray-900 tracking-tight">Doodle streak</h2>
-                    <p class="text-[12px] font-black text-gray-400 mt-1 uppercase tracking-[0.15em]">Create art together</p>
-                </div>
-                <div class="hidden sm:flex items-center gap-2 rounded-full bg-white/70 border border-white px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 shadow-sm">
-                    <span class="h-2 w-2 rounded-full bg-[#FB7185]"></span>
-                    Live streak
-                </div>
-            </div>
-
-            <DoodleStreakRibbon streak={doodleStreak} />
-        </section>
+        <!-- SHARED DOODLE CANVAS & LIVE SKETCHPAD CARD -->
+        <DashboardDoodleCard {latestDoodle} {isPartnerOnline} {partnerName} />
 
         <!-- WIDGET ROW: Smart Blocks -->
         <div class="grid grid-cols-2 gap-4">
