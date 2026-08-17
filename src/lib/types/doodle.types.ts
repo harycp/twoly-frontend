@@ -59,10 +59,9 @@ export interface DoodleItem {
 	created_at: string;
 }
 
-export interface DoodleActivity {
-	id: string;
+export interface ActiveCanvasData {
 	couple_id: string;
-	sender_id: string;
-	doodle_canvas_id?: string;
-	created_at: string;
+	strokes: string;
+	updated_by_id?: string;
+	updated_at: string;
 }

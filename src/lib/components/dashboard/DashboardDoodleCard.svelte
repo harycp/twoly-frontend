@@ -1,9 +1,16 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
-	import type { DrawingTool, StrokePoint, StrokeRecord } from '$lib/types/doodle.types';
-	import { drawStroke, simplifyPoints, exportCanvasToBlob } from '$lib/utils/canvas.utils';
+	import { browser } from '$app/environment';
+	import type { RealtimeChannel } from '@supabase/supabase-js';
+
+	import { authStore } from '$lib/stores/auth.store.svelte';
+	import { coupleStore } from '$lib/stores/couple.store.svelte';
+	import { supabase } from '$lib/services/supabase.service';
 	import { doodleService } from '$lib/services/doodle.service';
+	import { drawStroke, simplifyPoints, exportCanvasToBlob } from '$lib/utils/canvas.utils';
+
+	import type { DrawingTool, StrokePoint, StrokeRecord, BroadcastPayload } from '$lib/types/doodle.types';
 
 	interface Props {
 		isPartnerOnline: boolean;
@@ -11,6 +18,9 @@
 	}
 
 	let { isPartnerOnline, partnerName }: Props = $props();
+
+	let myId = $derived(authStore.user?.id || '');
+	let coupleId = $derived(coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id || '');
 
 	let canvasRef: HTMLCanvasElement | null = $state(null);
 	let containerRef: HTMLDivElement | null = $state(null);
@@ -22,9 +32,14 @@
 	let strokes = $state<StrokeRecord[]>([]);
 	let isDrawing = $state(false);
 	let currentPoints: StrokePoint[] = [];
+
 	let isSaving = $state(false);
 	let saveFeedback = $state<string | null>(null);
 	let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+	let syncDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
+
+	let doodleChannel: RealtimeChannel | null = null;
+	let partnerActiveStroke: StrokeRecord | null = $state(null);
 
 	const presetColors = [
 		'#1E293B', // Charcoal
@@ -50,6 +65,17 @@
 		}, 3000);
 	}
 
+	function debounceSyncBackend() {
+		if (syncDebounceTimeout) clearTimeout(syncDebounceTimeout);
+		syncDebounceTimeout = setTimeout(async () => {
+			try {
+				await doodleService.syncActiveCanvas(strokes);
+			} catch (e) {
+				console.error('Failed to sync active canvas:', e);
+			}
+		}, 1000);
+	}
+
 	function redrawCanvas() {
 		if (!canvasRef || !containerRef) return;
 		const ctx = canvasRef.getContext('2d');
@@ -60,6 +86,10 @@
 
 		for (const stroke of strokes) {
 			drawStroke(ctx, stroke, rect.width, rect.height);
+		}
+
+		if (partnerActiveStroke) {
+			drawStroke(ctx, partnerActiveStroke, rect.width, rect.height);
 		}
 	}
 
@@ -76,12 +106,74 @@
 		redrawCanvas();
 	}
 
+	async function loadActiveCanvas() {
+		try {
+			const activeStrokes = await doodleService.getActiveCanvas();
+			if (activeStrokes && activeStrokes.length > 0) {
+				strokes = activeStrokes;
+				redrawCanvas();
+			}
+		} catch (e) {
+			console.error('Failed to load active canvas:', e);
+		}
+	}
+
+	function setupRealtimeChannel() {
+		if (!browser || !coupleId) return;
+
+		const channelName = `doodle_${coupleId}`;
+		doodleChannel = supabase.channel(channelName, {
+			config: {
+				broadcast: { self: false }
+			}
+		});
+
+		doodleChannel
+			.on('broadcast', { event: 'doodle_event' }, ({ payload }: { payload: BroadcastPayload }) => {
+				if (!payload) return;
+
+				if (payload.type === 'stroke_start') {
+					partnerActiveStroke = payload.stroke;
+					redrawCanvas();
+				} else if (payload.type === 'stroke_chunk') {
+					if (partnerActiveStroke && partnerActiveStroke.id === payload.strokeId) {
+						partnerActiveStroke.points = [...partnerActiveStroke.points, ...payload.points];
+						redrawCanvas();
+					}
+				} else if (payload.type === 'stroke_end') {
+					if (partnerActiveStroke && partnerActiveStroke.id === payload.strokeId) {
+						strokes = [...strokes, partnerActiveStroke];
+						partnerActiveStroke = null;
+						redrawCanvas();
+					}
+				} else if (payload.type === 'action') {
+					if (payload.action === 'undo') {
+						strokes = strokes.slice(0, -1);
+						redrawCanvas();
+					} else if (payload.action === 'clear') {
+						strokes = [];
+						partnerActiveStroke = null;
+						redrawCanvas();
+					}
+				}
+			})
+			.subscribe();
+	}
+
 	onMount(() => {
 		resizeCanvas();
+		loadActiveCanvas();
+		setupRealtimeChannel();
+
 		window.addEventListener('resize', resizeCanvas);
+
 		return () => {
 			window.removeEventListener('resize', resizeCanvas);
 			if (saveTimeout) clearTimeout(saveTimeout);
+			if (syncDebounceTimeout) clearTimeout(syncDebounceTimeout);
+			if (doodleChannel) {
+				supabase.removeChannel(doodleChannel);
+			}
 		};
 	});
 
@@ -100,12 +192,30 @@
 
 		const { x, y } = getNormalizedCoords(e);
 		currentPoints = [{ x, y, p: e.pressure || 0.5 }];
+
+		const tempStroke: StrokeRecord = {
+			id: `stroke_${Date.now()}_${myId}`,
+			senderId: myId,
+			tool: currentTool,
+			color: currentColor,
+			width: currentWidth,
+			opacity: 1,
+			points: currentPoints,
+			timestamp: Date.now()
+		};
+
+		doodleChannel?.send({
+			type: 'broadcast',
+			event: 'doodle_event',
+			payload: { type: 'stroke_start', stroke: tempStroke }
+		});
 	}
 
 	function handlePointerMove(e: PointerEvent) {
 		if (!isDrawing || !containerRef || !canvasRef) return;
 		const { x, y } = getNormalizedCoords(e);
-		currentPoints.push({ x, y, p: e.pressure || 0.5 });
+		const newPt: StrokePoint = { x, y, p: e.pressure || 0.5 };
+		currentPoints.push(newPt);
 
 		const ctx = canvasRef.getContext('2d');
 		if (!ctx) return;
@@ -115,10 +225,13 @@
 		for (const s of strokes) {
 			drawStroke(ctx, s, rect.width, rect.height);
 		}
+		if (partnerActiveStroke) {
+			drawStroke(ctx, partnerActiveStroke, rect.width, rect.height);
+		}
 
 		const tempStroke: StrokeRecord = {
 			id: 'temp',
-			senderId: 'local',
+			senderId: myId,
 			tool: currentTool,
 			color: currentColor,
 			width: currentWidth,
@@ -127,6 +240,19 @@
 			timestamp: Date.now()
 		};
 		drawStroke(ctx, tempStroke, rect.width, rect.height);
+
+		// Send stroke chunk to partner
+		if (currentPoints.length % 3 === 0) {
+			doodleChannel?.send({
+				type: 'broadcast',
+				event: 'doodle_event',
+				payload: {
+					type: 'stroke_chunk',
+					strokeId: `stroke_${Date.now()}_${myId}`,
+					points: [newPt]
+				}
+			});
+		}
 	}
 
 	function handlePointerUp(e: PointerEvent) {
@@ -143,9 +269,10 @@
 		currentPoints.push({ x, y, p: e.pressure || 0.5 });
 
 		const simplified = simplifyPoints(currentPoints, 0.0015);
+		const strokeId = `stroke_${Date.now()}_${myId}`;
 		const newStroke: StrokeRecord = {
-			id: `stroke_${Date.now()}`,
-			senderId: 'local',
+			id: strokeId,
+			senderId: myId,
 			tool: currentTool,
 			color: currentColor,
 			width: currentWidth,
@@ -157,23 +284,44 @@
 		strokes = [...strokes, newStroke];
 		currentPoints = [];
 		redrawCanvas();
+
+		doodleChannel?.send({
+			type: 'broadcast',
+			event: 'doodle_event',
+			payload: { type: 'stroke_end', strokeId }
+		});
+
+		debounceSyncBackend();
 	}
 
 	function handleUndo() {
 		if (strokes.length === 0) return;
 		strokes = strokes.slice(0, -1);
 		redrawCanvas();
+
+		doodleChannel?.send({
+			type: 'broadcast',
+			event: 'doodle_event',
+			payload: { type: 'action', action: 'undo', senderId: myId }
+		});
+
+		debounceSyncBackend();
 	}
 
 	function handleClear() {
 		if (strokes.length === 0) return;
 		strokes = [];
+		partnerActiveStroke = null;
 		currentPoints = [];
-		if (canvasRef && containerRef) {
-			const ctx = canvasRef.getContext('2d');
-			const rect = containerRef.getBoundingClientRect();
-			ctx?.clearRect(0, 0, rect.width, rect.height);
-		}
+		redrawCanvas();
+
+		doodleChannel?.send({
+			type: 'broadcast',
+			event: 'doodle_event',
+			payload: { type: 'action', action: 'clear', senderId: myId }
+		});
+
+		debounceSyncBackend();
 	}
 
 	async function handleSave() {
@@ -255,7 +403,7 @@
 
 		<canvas bind:this={canvasRef} class="absolute inset-0 h-full w-full pointer-events-none"></canvas>
 
-		{#if strokes.length === 0 && !isDrawing}
+		{#if strokes.length === 0 && !isDrawing && !partnerActiveStroke}
 			<div class="pointer-events-none absolute inset-0 flex items-center justify-center text-center opacity-40">
 				<p class="text-xs font-bold text-gray-400">Sketch here with your finger</p>
 			</div>

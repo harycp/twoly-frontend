@@ -76,11 +76,11 @@ export function drawStroke(
 
 	if (stroke.tool === 'eraser') {
 		ctx.globalCompositeOperation = 'destination-out';
-		ctx.lineWidth = stroke.width * (widthScale + heightScale) / 2;
+		ctx.lineWidth = stroke.width;
 	} else {
 		ctx.globalCompositeOperation = 'source-over';
 		ctx.strokeStyle = stroke.color;
-		ctx.lineWidth = stroke.width * (widthScale + heightScale) / 2;
+		ctx.lineWidth = stroke.width;
 		ctx.globalAlpha = stroke.tool === 'brush' ? stroke.opacity * 0.85 : stroke.opacity;
 	}
 
@@ -88,7 +88,7 @@ export function drawStroke(
 
 	if (pts.length === 1) {
 		ctx.beginPath();
-		ctx.arc(pts[0].x * widthScale, pts[0].y * heightScale, ctx.lineWidth / 2, 0, Math.PI * 2);
+		ctx.arc(pts[0].x * widthScale, pts[0].y * heightScale, stroke.width / 2, 0, Math.PI * 2);
 		ctx.fillStyle = ctx.strokeStyle;
 		ctx.fill();
 		ctx.restore();

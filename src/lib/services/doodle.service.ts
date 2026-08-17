@@ -1,5 +1,5 @@
 import { apiService } from './api.service';
-import type { DoodleItem, DoodleActivity } from '../types/doodle.types';
+import type { DoodleItem, ActiveCanvasData, StrokeRecord } from '../types/doodle.types';
 
 class DoodleService {
 	async saveDoodle(blob: Blob, title?: string, strokeCount: number = 0): Promise<DoodleItem> {
@@ -23,8 +23,20 @@ class DoodleService {
 		return apiService.delete<void>(`/doodles/${id}`);
 	}
 
-	async getStreakActivities(): Promise<DoodleActivity[]> {
-		return apiService.get<DoodleActivity[]>('/doodles/streak-activities');
+	async getActiveCanvas(): Promise<StrokeRecord[]> {
+		const res = await apiService.get<ActiveCanvasData>('/doodles/active');
+		if (!res || !res.strokes) return [];
+		try {
+			return JSON.parse(res.strokes);
+		} catch {
+			return [];
+		}
+	}
+
+	async syncActiveCanvas(strokes: StrokeRecord[]): Promise<void> {
+		return apiService.put<void>('/doodles/active', {
+			strokes: JSON.stringify(strokes)
+		});
 	}
 }
 

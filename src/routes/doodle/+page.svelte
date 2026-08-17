@@ -171,6 +171,30 @@
 		}
 	}
 
+	let syncDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
+
+	function debounceSyncBackend() {
+		if (syncDebounceTimeout) clearTimeout(syncDebounceTimeout);
+		syncDebounceTimeout = setTimeout(async () => {
+			try {
+				await doodleService.syncActiveCanvas(strokes);
+			} catch (e) {
+				console.error('Failed to sync active canvas:', e);
+			}
+		}, 1000);
+	}
+
+	async function loadActiveCanvas() {
+		try {
+			const activeStrokes = await doodleService.getActiveCanvas();
+			if (activeStrokes && activeStrokes.length > 0) {
+				strokes = activeStrokes;
+			}
+		} catch (e) {
+			console.error('Failed to load active canvas:', e);
+		}
+	}
+
 	onMount(() => {
 		if (!authStore.isAuthenticated) {
 			goto(resolve('/login'));
@@ -182,12 +206,14 @@
 			return;
 		}
 
+		loadActiveCanvas();
 		setupRealtime();
 
 		return () => {
 			teardownRealtime();
 			if (partnerCursorTimeout) clearTimeout(partnerCursorTimeout);
 			if (toastTimeout) clearTimeout(toastTimeout);
+			if (syncDebounceTimeout) clearTimeout(syncDebounceTimeout);
 		};
 	});
 
@@ -215,6 +241,8 @@
 			type: 'stroke_end',
 			strokeId: stroke.id
 		});
+
+		debounceSyncBackend();
 	}
 
 	function handleCursorMove(x: number, y: number, isDrawing: boolean) {
@@ -240,6 +268,8 @@
 			strokeId: lastStroke.id,
 			senderId: myId
 		});
+
+		debounceSyncBackend();
 	}
 
 	function handleRedo() {
@@ -254,6 +284,8 @@
 			strokeId: nextStroke.id,
 			senderId: myId
 		});
+
+		debounceSyncBackend();
 	}
 
 	function handleClear() {
@@ -270,6 +302,7 @@
 			senderId: myId
 		});
 		showToast('Canvas cleared');
+		debounceSyncBackend();
 	}
 
 	// Save Flow
