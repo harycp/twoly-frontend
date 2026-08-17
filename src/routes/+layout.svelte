@@ -29,7 +29,6 @@
 	let presenceHeartbeat: ReturnType<typeof setInterval> | null = null;
 	let presenceStatusHeartbeat: ReturnType<typeof setInterval> | null = null;
 	let coupleRefreshHeartbeat: ReturnType<typeof setInterval> | null = null;
-	let presenceSyncHeartbeat: ReturnType<typeof setInterval> | null = null;
 	let presenceSetupInProgress = false;
 	let presenceCoupleId: string | null = null;
 	let presencePartnerOnline = false;
@@ -84,11 +83,6 @@
 		if (coupleRefreshHeartbeat) {
 			clearInterval(coupleRefreshHeartbeat);
 			coupleRefreshHeartbeat = null;
-		}
-
-		if (presenceSyncHeartbeat) {
-			clearInterval(presenceSyncHeartbeat);
-			presenceSyncHeartbeat = null;
 		}
 	}
 
@@ -235,10 +229,6 @@
 			coupleRefreshHeartbeat = setInterval(triggerCoupleRefresh, 60 * 1000);
 		}
 
-		if (!presenceSyncHeartbeat) {
-			presenceSyncHeartbeat = setInterval(syncPresenceChannel, 1500);
-		}
-
 		window.addEventListener('beforeunload', triggerPresenceUpdate);
 		document.addEventListener('visibilitychange', handleVisibilityChange);
 
@@ -248,6 +238,15 @@
 			stopPresenceSchedulers();
 			clearPresenceChannel();
 		};
+	});
+
+	// Reactive trigger when auth or couple data changes (replacing 1.5s interval polling)
+	$effect(() => {
+		if (browser && authStore.isAuthenticated && coupleStore.data && authStore.user?.id) {
+			void syncPresenceChannel();
+		} else if (browser && !authStore.isAuthenticated) {
+			clearPresenceChannel();
+		}
 	});
 </script>
 
