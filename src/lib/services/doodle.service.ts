@@ -24,9 +24,9 @@ class DoodleService {
 	}
 
 	async getActiveCanvas(): Promise<StrokeRecord[]> {
-		const res = await apiService.get<ActiveCanvasData>('/doodles/active');
-		if (!res || !res.strokes) return [];
 		try {
+			const res = await apiService.get<ActiveCanvasData>('/doodles/active');
+			if (!res || !res.strokes) return [];
 			return JSON.parse(res.strokes);
 		} catch {
 			return [];
@@ -34,9 +34,13 @@ class DoodleService {
 	}
 
 	async syncActiveCanvas(strokes: StrokeRecord[]): Promise<void> {
-		return apiService.put<void>('/doodles/active', {
-			strokes: JSON.stringify(strokes)
-		});
+		try {
+			await apiService.put<void>('/doodles/active', {
+				strokes: JSON.stringify(strokes)
+			});
+		} catch {
+			// ignore sync failure
+		}
 	}
 }
 

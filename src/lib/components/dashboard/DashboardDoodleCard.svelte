@@ -31,6 +31,7 @@
 
 	let strokes = $state<StrokeRecord[]>([]);
 	let isDrawing = $state(false);
+	let currentStrokeId = '';
 	let currentPoints: StrokePoint[] = [];
 
 	let isSaving = $state(false);
@@ -133,11 +134,17 @@
 				if (!payload) return;
 
 				if (payload.type === 'stroke_start') {
-					partnerActiveStroke = payload.stroke;
+					partnerActiveStroke = {
+						...payload.stroke,
+						points: [...payload.stroke.points]
+					};
 					redrawCanvas();
 				} else if (payload.type === 'stroke_chunk') {
 					if (partnerActiveStroke && partnerActiveStroke.id === payload.strokeId) {
-						partnerActiveStroke.points = [...partnerActiveStroke.points, ...payload.points];
+						partnerActiveStroke = {
+							...partnerActiveStroke,
+							points: [...partnerActiveStroke.points, ...payload.points]
+						};
 						redrawCanvas();
 					}
 				} else if (payload.type === 'stroke_end') {
@@ -190,17 +197,18 @@
 		containerRef.setPointerCapture(e.pointerId);
 		isDrawing = true;
 
+		currentStrokeId = `stroke_${Date.now()}_${myId}_${Math.random().toString(36).substring(2, 6)}`;
 		const { x, y } = getNormalizedCoords(e);
 		currentPoints = [{ x, y, p: e.pressure || 0.5 }];
 
 		const tempStroke: StrokeRecord = {
-			id: `stroke_${Date.now()}_${myId}`,
+			id: currentStrokeId,
 			senderId: myId,
 			tool: currentTool,
 			color: currentColor,
 			width: currentWidth,
 			opacity: 1,
-			points: currentPoints,
+			points: [...currentPoints],
 			timestamp: Date.now()
 		};
 
@@ -230,7 +238,7 @@
 		}
 
 		const tempStroke: StrokeRecord = {
-			id: 'temp',
+			id: currentStrokeId,
 			senderId: myId,
 			tool: currentTool,
 			color: currentColor,
@@ -241,14 +249,14 @@
 		};
 		drawStroke(ctx, tempStroke, rect.width, rect.height);
 
-		// Send stroke chunk to partner
-		if (currentPoints.length % 3 === 0) {
+		// Send stroke chunk to partner using consistent currentStrokeId
+		if (currentPoints.length % 2 === 0) {
 			doodleChannel?.send({
 				type: 'broadcast',
 				event: 'doodle_event',
 				payload: {
 					type: 'stroke_chunk',
-					strokeId: `stroke_${Date.now()}_${myId}`,
+					strokeId: currentStrokeId,
 					points: [newPt]
 				}
 			});
@@ -269,9 +277,8 @@
 		currentPoints.push({ x, y, p: e.pressure || 0.5 });
 
 		const simplified = simplifyPoints(currentPoints, 0.0015);
-		const strokeId = `stroke_${Date.now()}_${myId}`;
 		const newStroke: StrokeRecord = {
-			id: strokeId,
+			id: currentStrokeId,
 			senderId: myId,
 			tool: currentTool,
 			color: currentColor,
@@ -288,7 +295,7 @@
 		doodleChannel?.send({
 			type: 'broadcast',
 			event: 'doodle_event',
-			payload: { type: 'stroke_end', strokeId }
+			payload: { type: 'stroke_end', strokeId: currentStrokeId }
 		});
 
 		debounceSyncBackend();
@@ -352,7 +359,7 @@
 		class="absolute -left-10 -bottom-10 h-36 w-36 rounded-full bg-linear-to-tr from-[#DDD6FE]/20 to-transparent blur-2xl pointer-events-none"
 	></div>
 
-	<!-- Top Header with Status & Fullscreen Link -->
+	<!-- Top Header (Icon + Title on Left, Fullscreen Icon Button on Right) -->
 	<div class="relative z-10 flex items-center justify-between pb-3">
 		<div class="flex items-center gap-2.5">
 			<div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-rose-50 border border-rose-100 text-rose-500 shadow-xs">
@@ -362,29 +369,22 @@
 			</div>
 			<div>
 				<h2 class="text-base font-black text-gray-900 tracking-tight leading-none">Shared Sketchpad</h2>
-				<p class="text-[11px] font-bold text-gray-400 mt-1">
-					{#if isPartnerOnline}
-						<span class="text-rose-500 font-extrabold">{partnerName} is online</span> • Live sync
-					{:else}
-						Canvas active • Draw for {partnerName}
-					{/if}
-				</p>
 			</div>
 		</div>
 
-		<!-- Direct Link to Full Page Canvas -->
+		<!-- Direct Link to Full Page Canvas (SVG Icon only) -->
 		<a
 			href={resolve('/doodle')}
-			class="flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-100/80 px-3 py-1.5 text-[11px] font-black text-rose-600 shadow-xs transition-all hover:bg-rose-100 active:scale-95"
+			aria-label="Open Full Canvas"
+			class="flex h-9 w-9 items-center justify-center rounded-2xl bg-rose-50 border border-rose-100/80 text-rose-600 shadow-xs transition-all hover:bg-rose-100 hover:scale-105 active:scale-90"
 		>
-			<span>Full Canvas</span>
-			<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+			<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
 			</svg>
 		</a>
 	</div>
 
-	<!-- Interactive Drawing Canvas -->
+	<!-- Interactive Drawing Canvas (Spacious Height & Width) -->
 	<div
 		bind:this={containerRef}
 		role="application"
@@ -393,7 +393,7 @@
 		onpointermove={handlePointerMove}
 		onpointerup={handlePointerUp}
 		onpointercancel={handlePointerUp}
-		class="relative aspect-16/10 w-full touch-none select-none overflow-hidden rounded-2xl border border-gray-100 bg-[#FFF7ED] shadow-inner cursor-crosshair"
+		class="relative h-[320px] sm:h-[380px] w-full touch-none select-none overflow-hidden rounded-2xl border border-gray-100 bg-[#FFF7ED] shadow-inner cursor-crosshair"
 	>
 		<!-- Subtle dot grid background -->
 		<div
