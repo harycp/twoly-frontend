@@ -26,24 +26,21 @@
 			></div>
 		{/if}
 
-		<!-- Center dot / Pencil pointer -->
-		<div class="relative flex items-center justify-center">
-			<div
-				class="h-4 w-4 rounded-full border-2 border-white bg-rose-500 shadow-md transition-transform duration-150 {isDrawing
-					? 'scale-125'
-					: 'scale-100'}"
-			></div>
+		<!-- Pointer SVG Icon & Name Badge -->
+		<div class="relative flex items-center">
+			<div class="flex h-6 w-6 items-center justify-center rounded-lg bg-rose-500 text-white shadow-md">
+				<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+				</svg>
+			</div>
 
 			<!-- Partner Name Badge -->
 			<div
-				class="absolute left-5 top-0 flex items-center gap-1 whitespace-nowrap rounded-full bg-gray-900/85 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-md backdrop-blur-sm border border-white/20"
+				class="ml-1.5 flex items-center gap-1 whitespace-nowrap rounded-lg bg-gray-900/85 px-2 py-0.5 text-[10px] font-bold text-white shadow-md backdrop-blur-sm"
 			>
-				<span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
 				<span>{name || 'Partner'}</span>
 				{#if isDrawing}
-					<svg class="h-2.5 w-2.5 text-rose-300 animate-pulse" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-					</svg>
+					<span class="text-rose-300">drawing...</span>
 				{/if}
 			</div>
 		</div>

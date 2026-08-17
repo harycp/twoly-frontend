@@ -38,38 +38,26 @@
 	}: Props = $props();
 
 	const widthPresets = [
-		{ label: 'S', value: 3, dotSize: 'h-1.5 w-1.5' },
-		{ label: 'M', value: 7, dotSize: 'h-2.5 w-2.5' },
-		{ label: 'L', value: 14, dotSize: 'h-4 w-4' }
+		{ label: 'S', value: 3 },
+		{ label: 'M', value: 7 },
+		{ label: 'L', value: 14 }
 	];
 
 	let isCollapsed = $state(false);
 </script>
 
 {#if isCollapsed}
-	<!-- Minimized Floating Action Pill (Maximize Screen Space) -->
-	<div
-		transition:scale={{ duration: 200 }}
-		class="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-white/80 bg-white/90 p-2 shadow-[0_16px_40px_-10px_rgba(253,164,175,0.35)] backdrop-blur-2xl transition-all hover:scale-105 select-none"
+	<!-- Minimized Floating Action Button (Maximize Screen Space) -->
+	<button
+		type="button"
+		aria-label="Show Drawing Tools"
+		onclick={() => (isCollapsed = false)}
+		class="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500 text-white shadow-[0_12px_32px_-8px_rgba(253,164,175,0.4)] transition-transform hover:scale-105 active:scale-90"
 	>
-		<!-- Active Tool & Color Preview -->
-		<div class="flex items-center gap-2 pl-2 pr-1">
-			<span class="h-3 w-3 rounded-full shadow-xs ring-1 ring-black/10" style="background-color: {currentColor};"></span>
-			<span class="text-[10px] font-black uppercase tracking-wider text-gray-700">{currentTool}</span>
-		</div>
-
-		<!-- Expand Button -->
-		<button
-			type="button"
-			aria-label="Show Drawing Tools"
-			onclick={() => (isCollapsed = false)}
-			class="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-r from-rose-500 to-pink-500 text-white shadow-sm transition-transform active:scale-90"
-		>
-			<svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
-			</svg>
-		</button>
-	</div>
+		<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+		</svg>
+	</button>
 {:else}
 	<!-- Expanded Full Drawing Toolbar -->
 	<div
@@ -95,18 +83,18 @@
 			<div class="h-6 w-px bg-gray-200/80"></div>
 
 			<!-- Stroke Width Presets -->
-			<div class="flex items-center gap-1 px-1.5">
+			<div class="flex items-center gap-1 px-1">
 				{#each widthPresets as preset (preset.value)}
 					{@const isSelected = currentWidth === preset.value}
 					<button
 						type="button"
 						aria-label="Stroke size {preset.label}"
 						onclick={() => onWidthChange(preset.value)}
-						class="flex h-8 w-8 items-center justify-center rounded-full transition-all active:scale-90 {isSelected
-							? 'bg-rose-100/80 text-rose-600 font-bold shadow-xs'
-							: 'text-gray-400 hover:bg-gray-100'}"
+						class="flex h-8 w-8 items-center justify-center rounded-xl text-xs font-black transition-all active:scale-90 {isSelected
+							? 'bg-rose-100 text-rose-600'
+							: 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'}"
 					>
-						<span class="{preset.dotSize} rounded-full bg-current"></span>
+						{preset.label}
 					</button>
 				{/each}
 			</div>

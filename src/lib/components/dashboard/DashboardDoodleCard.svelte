@@ -55,9 +55,9 @@
 	];
 
 	const sizePresets = [
-		{ label: 'Fine', value: 3, dotClass: 'h-1.5 w-1.5' },
-		{ label: 'Medium', value: 6, dotClass: 'h-2.5 w-2.5' },
-		{ label: 'Bold', value: 12, dotClass: 'h-3.5 w-3.5' }
+		{ label: 'S', value: 3 },
+		{ label: 'M', value: 6 },
+		{ label: 'L', value: 12 }
 	];
 
 	function showFeedback(msg: string) {
@@ -421,12 +421,6 @@
 		onpointercancel={handlePointerUp}
 		class="relative w-full touch-none select-none overflow-hidden rounded-2xl border border-gray-100 bg-[#FFF7ED] shadow-inner cursor-crosshair transition-all duration-300 {isControlsHidden ? 'h-[400px] sm:h-[460px]' : 'h-[320px] sm:h-[380px]'}"
 	>
-		<!-- Subtle dot grid background -->
-		<div
-			class="pointer-events-none absolute inset-0 opacity-[0.03]"
-			style="background-size: 18px 18px; background-image: radial-gradient(circle, #000 1px, transparent 1px);"
-		></div>
-
 		<canvas bind:this={canvasRef} class="absolute inset-0 h-full w-full pointer-events-none"></canvas>
 
 		{#if strokes.length === 0 && !isDrawing && !partnerActiveStroke}
@@ -520,18 +514,18 @@
 				</div>
 
 				<!-- Stroke Width Presets -->
-				<div class="flex items-center gap-1 rounded-xl bg-gray-100/90 p-0.5 border border-white">
+				<div class="flex items-center gap-0.5 rounded-xl bg-gray-100/90 p-0.5 border border-white">
 					{#each sizePresets as preset (preset.value)}
 						{@const isSelected = currentWidth === preset.value}
 						<button
 							type="button"
 							aria-label="Stroke {preset.label}"
 							onclick={() => (currentWidth = preset.value)}
-							class="flex h-7 w-7 items-center justify-center rounded-lg transition-all {isSelected
+							class="flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-black transition-all {isSelected
 								? 'bg-white text-rose-600 shadow-xs'
 								: 'text-gray-400 hover:text-gray-700'}"
 						>
-							<span class="{preset.dotClass} rounded-full bg-current"></span>
+							{preset.label}
 						</button>
 					{/each}
 				</div>

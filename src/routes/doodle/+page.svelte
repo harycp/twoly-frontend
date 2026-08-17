@@ -434,13 +434,7 @@
 	{/if}
 
 	<!-- MAIN CANVAS SPACE -->
-	<main class="relative flex-1 w-full overflow-hidden">
-		<!-- Subtle decorative canvas grid watermark -->
-		<div
-			class="pointer-events-none absolute inset-0 opacity-[0.035]"
-			style="background-size: 24px 24px; background-image: radial-gradient(circle, #000 1px, transparent 1px);"
-		></div>
-
+	<main class="relative flex-1 w-full overflow-hidden bg-[#FFF7ED]">
 		<!-- Partner Live Floating Cursor -->
 		<PartnerCursor
 			x={partnerX}
