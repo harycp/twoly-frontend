@@ -41,7 +41,9 @@
 				<span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
 				<span>{name || 'Partner'}</span>
 				{#if isDrawing}
-					<span class="text-[9px] text-rose-300">✍️</span>
+					<svg class="h-2.5 w-2.5 text-rose-300 animate-pulse" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+					</svg>
 				{/if}
 			</div>
 		</div>

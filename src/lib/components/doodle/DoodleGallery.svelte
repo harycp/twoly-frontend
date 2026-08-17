@@ -57,8 +57,8 @@
 		<!-- Header -->
 		<div class="flex items-center justify-between px-6 pb-4">
 			<div>
-				<h2 class="text-2xl font-black text-gray-900 tracking-tight">Doodle Vault 🎨</h2>
-				<p class="text-xs font-bold text-gray-400">All the cute drawings you created together</p>
+				<h2 class="text-2xl font-black text-gray-900 tracking-tight">Doodle Vault</h2>
+				<p class="text-xs font-bold text-gray-400">Saved drawings from you and your partner</p>
 			</div>
 			<button
 				type="button"

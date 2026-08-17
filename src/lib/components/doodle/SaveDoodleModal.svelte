@@ -75,7 +75,7 @@
 						id="doodle-title"
 						type="text"
 						bind:value={title}
-						placeholder="e.g., Late night doodles for you ❤️"
+						placeholder="e.g., Late night sketch"
 						maxlength="80"
 						disabled={isSaving}
 						class="w-full rounded-2xl border border-gray-200 bg-gray-50/80 px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:border-rose-400 focus:bg-white focus:outline-none focus:ring-3 focus:ring-rose-100"
@@ -108,7 +108,7 @@
 							</svg>
 							<span>Saving...</span>
 						{:else}
-							<span>Save to Gallery ✨</span>
+							<span>Save to Gallery</span>
 						{/if}
 					</button>
 				</div>

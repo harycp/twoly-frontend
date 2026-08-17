@@ -297,7 +297,7 @@
 			await doodleService.saveDoodle(blob, title, strokes.length);
 
 			isSaveModalOpen = false;
-			showToast('Masterpiece saved to Doodle Vault! ✨');
+			showToast('Saved to Doodle Vault');
 		} catch (error) {
 			console.error('Failed to save doodle:', error);
 			showToast('Failed to save doodle. Please try again.');
@@ -363,11 +363,11 @@
 
 			<span class="text-[11px] font-black uppercase tracking-wider text-gray-700">
 				{#if isPartnerOnline && isSubscribed}
-					<span class="text-rose-600">{partnerName} is here 🎨</span>
+					<span class="text-rose-600">{partnerName} is online</span>
 				{:else if connectionStatus === 'error'}
 					<span class="text-red-500">Offline Canvas</span>
 				{:else}
-					<span>Canvas Ready ✨</span>
+					<span>Canvas Ready</span>
 				{/if}
 			</span>
 		</div>
@@ -420,10 +420,14 @@
 		<!-- Empty state guidance if canvas has 0 strokes -->
 		{#if strokes.length === 0 && !partnerActiveStroke}
 			<div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center p-6 text-center opacity-40">
-				<div class="text-4xl mb-2">✨</div>
+				<div class="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-rose-400 shadow-sm">
+					<svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+					</svg>
+				</div>
 				<p class="text-sm font-black text-gray-600">Our Shared Canvas</p>
 				<p class="text-xs font-semibold text-gray-400 mt-0.5">
-					Draw something cute, {partnerName} sees it live!
+					Draw something for {partnerName}
 				</p>
 			</div>
 		{/if}

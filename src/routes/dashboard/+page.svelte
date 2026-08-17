@@ -131,15 +131,8 @@
         queryFn: () => loveNoteService.getLoveNotes()
     }));
 
-    const latestDoodlesQuery = createQuery(() => ({
-        queryKey: ['doodles-latest', coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id],
-        enabled: !!(coupleStore.data?.id || (coupleStore.data as { couple_id?: string } | null)?.couple_id),
-        queryFn: () => doodleService.getDoodles()
-    }));
-
     let recentMemories = $derived(memoriesQuery.data?.slice(0, 4) || []);
     let upcomingDates = $derived(datesQuery.data || []);
-    let latestDoodle = $derived(latestDoodlesQuery.data && latestDoodlesQuery.data.length > 0 ? latestDoodlesQuery.data[0] : null);
     
     let closestPlan = $derived(upcomingDates.length > 0 ? upcomingDates[0] : null);
     
@@ -280,7 +273,7 @@
         </div>
 
         <!-- SHARED DOODLE CANVAS & LIVE SKETCHPAD CARD -->
-        <DashboardDoodleCard {latestDoodle} {isPartnerOnline} {partnerName} />
+        <DashboardDoodleCard {isPartnerOnline} {partnerName} />
 
         <!-- WIDGET ROW: Smart Blocks -->
         <div class="grid grid-cols-2 gap-4">
