@@ -420,177 +420,161 @@
             </form>
         </section>
 
-        <!-- FORM 3: MEDIA STORAGE (GOOGLE DRIVE & CLOUDINARY) -->
-        <section class="rounded-[36px] bg-white/70 backdrop-blur-2xl p-7 shadow-[0_12px_40px_-16px_rgba(0,0,0,0.08)] border border-white/80 space-y-6">
-            <div class="flex items-center justify-between border-b border-gray-100/50 pb-4">
+        <!-- FORM 3: MEDIA STORAGE -->
+        <section class="rounded-[36px] bg-white/70 backdrop-blur-2xl p-7 shadow-[0_12px_40px_-16px_rgba(0,0,0,0.08)] border border-white/80">
+            <!-- Section Header -->
+            <div class="mb-6 flex items-center justify-between border-b border-gray-100/60 pb-4">
                 <div class="flex items-center gap-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-[14px] bg-gray-100/80 text-gray-600">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
                     </div>
                     <div>
                         <h3 class="text-[14px] font-black uppercase tracking-widest text-gray-800">Media Storage</h3>
-                        <p class="text-[11px] font-medium text-gray-400">Choose where couple memories are stored</p>
+                        <p class="text-xs text-gray-400 font-medium">Manage where couple photos & videos are stored</p>
                     </div>
                 </div>
 
                 {#if storageProvider === 'gdrive' && isOAuthConnected}
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">
-                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Drive Active
-                    </span>
-                {:else if storageProvider === 'gdrive'}
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-100">
-                        <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
-                        Link Required
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                        Active
                     </span>
                 {/if}
             </div>
 
-            <!-- GOOGLE ACCOUNT CONNECTION CARD -->
-            <div class="rounded-2xl border border-white/80 bg-white/50 p-4 shadow-sm backdrop-blur-md">
-                <div class="flex items-start justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100">
-                            <svg class="h-6 w-6" viewBox="0 0 24 24">
-                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                            </svg>
+            <form onsubmit={handleSaveGDrive} class="space-y-6">
+                <!-- Storage Provider Selection Cards -->
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Google Drive Option -->
+                    <button
+                        type="button"
+                        onclick={() => storageProvider = 'gdrive'}
+                        class="relative text-left p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between {storageProvider === 'gdrive' ? 'bg-white border-[#FDA4AF] shadow-[0_4px_20px_-4px_rgba(253,164,175,0.25)] ring-1 ring-[#FDA4AF]' : 'bg-white/40 border-gray-100 hover:bg-white/70 text-gray-400'}"
+                    >
+                        <div class="flex items-center justify-between w-full mb-3">
+                            <div class="h-8 w-8 rounded-xl bg-white shadow-xs border border-gray-100 flex items-center justify-center">
+                                <svg class="h-4.5 w-4.5" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                                </svg>
+                            </div>
+                            <div class="h-4 w-4 rounded-full border flex items-center justify-center {storageProvider === 'gdrive' ? 'border-[#FDA4AF] bg-[#FDA4AF]' : 'border-gray-300'}">
+                                {#if storageProvider === 'gdrive'}
+                                    <div class="h-1.5 w-1.5 rounded-full bg-white"></div>
+                                {/if}
+                            </div>
                         </div>
                         <div>
-                            <h4 class="text-xs font-black uppercase tracking-wider text-gray-900">
-                                {isOAuthConnected ? 'Google Drive Linked' : 'Link Google Drive'}
-                            </h4>
-                            <p class="text-[11px] text-gray-500 font-medium leading-relaxed">
-                                {isOAuthConnected 
-                                    ? 'Connected with your Google storage for uploads.' 
-                                    : 'Authorize Twoly to upload directly to your personal Google Drive.'}
-                            </p>
+                            <p class="text-[13px] font-black {storageProvider === 'gdrive' ? 'text-gray-900' : 'text-gray-600'}">Google Drive</p>
+                            <p class="text-[10.5px] text-gray-400 font-medium leading-tight mt-0.5">Original quality & auto-folders</p>
                         </div>
-                    </div>
+                    </button>
 
-                    {#if isOAuthConnected}
-                        <button
-                            type="button"
-                            onclick={handleDisconnectGDrive}
-                            disabled={isDisconnectingDrive}
-                            class="shrink-0 px-3 py-1.5 rounded-xl text-[11px] font-bold text-rose-500 hover:bg-rose-50 border border-rose-100 transition-colors disabled:opacity-50"
-                        >
-                            {isDisconnectingDrive ? 'Disconnecting...' : 'Disconnect'}
-                        </button>
-                    {/if}
+                    <!-- Cloudinary Option -->
+                    <button
+                        type="button"
+                        onclick={() => storageProvider = 'cloudinary'}
+                        class="relative text-left p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between {storageProvider === 'cloudinary' ? 'bg-white border-[#FDA4AF] shadow-[0_4px_20px_-4px_rgba(253,164,175,0.25)] ring-1 ring-[#FDA4AF]' : 'bg-white/40 border-gray-100 hover:bg-white/70 text-gray-400'}"
+                    >
+                        <div class="flex items-center justify-between w-full mb-3">
+                            <div class="h-8 w-8 rounded-xl bg-white shadow-xs border border-gray-100 flex items-center justify-center text-sky-500">
+                                <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                            </div>
+                            <div class="h-4 w-4 rounded-full border flex items-center justify-center {storageProvider === 'cloudinary' ? 'border-[#FDA4AF] bg-[#FDA4AF]' : 'border-gray-300'}">
+                                {#if storageProvider === 'cloudinary'}
+                                    <div class="h-1.5 w-1.5 rounded-full bg-white"></div>
+                                {/if}
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-[13px] font-black {storageProvider === 'cloudinary' ? 'text-gray-900' : 'text-gray-600'}">Twoly Cloud</p>
+                            <p class="text-[10.5px] text-gray-400 font-medium leading-tight mt-0.5">Optimized CDN storage</p>
+                        </div>
+                    </button>
                 </div>
 
-                {#if !isOAuthConnected}
-                    <div class="mt-3.5 pt-3 border-t border-gray-100/60">
-                        <button
-                            type="button"
-                            onclick={handleConnectOAuth}
-                            disabled={isConnectingOAuth}
-                            class="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-gray-900 text-white text-xs font-black uppercase tracking-wider hover:bg-gray-800 active:scale-[0.99] transition-all shadow-sm disabled:opacity-60"
-                        >
-                            {#if isConnectingOAuth}
-                                <span class="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></span>
-                                <span>Redirecting to Google...</span>
-                            {:else}
-                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
-                                </svg>
-                                <span>Connect Google Drive</span>
-                            {/if}
-                        </button>
-                    </div>
-                {/if}
-            </div>
-
-            <form onsubmit={handleSaveGDrive} class="space-y-5">
-                <!-- FOLDER URL INPUT -->
-                <div class="space-y-1.5">
-                    <div class="flex items-center justify-between ml-1">
-                        <label for="gdriveFolderUrl" class="text-[12px] font-black text-gray-500 uppercase tracking-widest">Google Drive Folder Link</label>
-                        {#if gdriveFolderUrl.trim()}
-                            <button 
-                                type="button" 
-                                onclick={handleVerifyGDrive} 
-                                disabled={isVerifyingDrive}
-                                class="text-[11px] font-bold text-[#FDA4AF] hover:text-[#FB7185] transition-colors disabled:opacity-50"
-                            >
-                                {isVerifyingDrive ? 'Verifying...' : 'Verify Folder'}
-                            </button>
-                        {/if}
-                    </div>
-                    <Input 
-                        id="gdriveFolderUrl"
-                        type="url" 
-                        placeholder="https://drive.google.com/drive/folders/..." 
-                        bind:value={gdriveFolderUrl} 
-                    />
-                    {#if verifiedFolderName}
-                        <p class="text-[11px] font-bold text-emerald-600 ml-1 flex items-center gap-1">
-                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            {verifiedFolderName}
-                        </p>
-                    {/if}
-                </div>
-
-                <!-- Storage Provider Preference -->
-                <div class="flex flex-col gap-2 w-full">
-                    <span class="text-[12px] font-black text-gray-500 uppercase tracking-widest ml-1">Default Storage Provider</span>
-                    <div class="flex p-1.5 bg-white/40 backdrop-blur-xl rounded-[20px] border border-white/60 shadow-[0_4px_15px_-5px_rgba(0,0,0,0.02)]">
-                        <button
-                            type="button"
-                            onclick={() => storageProvider = 'gdrive'}
-                            class="flex-1 py-2.5 text-[11px] font-black uppercase tracking-wider rounded-[14px] transition-all duration-300 {storageProvider === 'gdrive' ? 'bg-white text-gray-900 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.06)] border border-gray-50' : 'text-gray-400 hover:text-gray-600'}"
-                        >
-                            Google Drive
-                        </button>
-                        <button
-                            type="button"
-                            onclick={() => storageProvider = 'cloudinary'}
-                            class="flex-1 py-2.5 text-[11px] font-black uppercase tracking-wider rounded-[14px] transition-all duration-300 {storageProvider === 'cloudinary' ? 'bg-white text-gray-900 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.06)] border border-gray-50' : 'text-gray-400 hover:text-gray-600'}"
-                        >
-                            Cloudinary
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Service Account / Folder Sharing Guide -->
-                {#if serviceAccountEmail}
-                    <div class="pt-1">
-                        <button
-                            type="button"
-                            onclick={() => showPermissionsHelp = !showPermissionsHelp}
-                            class="text-[11px] font-bold text-gray-400 hover:text-gray-600 flex items-center gap-1.5 transition-colors ml-1"
-                        >
-                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>{showPermissionsHelp ? 'Hide sharing guide' : 'Need sync permissions? View guide'}</span>
-                        </button>
-
-                        {#if showPermissionsHelp}
-                            <div class="mt-3 p-4 rounded-2xl bg-white/50 border border-white/80 space-y-2.5 text-[12px] text-gray-600">
-                                <p class="font-medium leading-relaxed">
-                                    To allow auto-syncing files placed directly in Drive, set folder access to <strong>"Anyone with the link can edit"</strong>, or invite this helper bot as Editor:
-                                </p>
-                                <div class="flex items-center gap-2">
-                                    <span class="flex-1 bg-white px-3 py-2 rounded-xl text-[11px] text-gray-800 truncate border border-gray-100 font-mono">
-                                        {serviceAccountEmail}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onclick={copyServiceAccountEmail}
-                                        class="px-3 py-2 rounded-xl bg-gray-900 text-white text-[11px] font-bold shrink-0 active:scale-95 transition-transform"
-                                    >
-                                        Copy
-                                    </button>
+                <!-- Google Drive Specific Configuration -->
+                {#if storageProvider === 'gdrive'}
+                    <div class="rounded-2xl bg-gray-50/60 border border-gray-100 p-4.5 space-y-4">
+                        <!-- Account Link Status Row -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-white border border-gray-200/60 text-gray-600">
+                                    <svg class="h-4 w-4" viewBox="0 0 24 24">
+                                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-gray-800">
+                                        {isOAuthConnected ? 'Google Account Connected' : 'Google Account Required'}
+                                    </p>
+                                    <p class="text-[10.5px] text-gray-400 font-medium">
+                                        {isOAuthConnected ? 'Uploads will sync directly to your Drive' : 'Link your account to enable direct Drive uploads'}
+                                    </p>
                                 </div>
                             </div>
-                        {/if}
+
+                            {#if isOAuthConnected}
+                                <button
+                                    type="button"
+                                    onclick={handleDisconnectGDrive}
+                                    disabled={isDisconnectingDrive}
+                                    class="text-xs font-bold text-gray-400 hover:text-rose-500 transition-colors px-2 py-1 disabled:opacity-50"
+                                >
+                                    {isDisconnectingDrive ? 'Disconnecting...' : 'Disconnect'}
+                                </button>
+                            {:else}
+                                <button
+                                    type="button"
+                                    onclick={handleConnectOAuth}
+                                    disabled={isConnectingOAuth}
+                                    class="px-3.5 py-1.5 rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-gray-800 active:scale-95 transition-all shadow-xs disabled:opacity-60"
+                                >
+                                    {isConnectingOAuth ? 'Connecting...' : 'Connect'}
+                                </button>
+                            {/if}
+                        </div>
+
+                        <!-- Target Folder Input -->
+                        <div class="pt-3 border-t border-gray-200/50 space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <label for="gdriveFolderUrl" class="text-[11px] font-bold text-gray-500 tracking-wide">Root Folder Link (Optional)</label>
+                                {#if gdriveFolderUrl.trim()}
+                                    <button 
+                                        type="button" 
+                                        onclick={handleVerifyGDrive} 
+                                        disabled={isVerifyingDrive}
+                                        class="text-[11px] font-bold text-[#FDA4AF] hover:text-[#FB7185] transition-colors disabled:opacity-50"
+                                    >
+                                        {isVerifyingDrive ? 'Checking...' : 'Verify'}
+                                    </button>
+                                {/if}
+                            </div>
+                            <Input 
+                                id="gdriveFolderUrl"
+                                type="url" 
+                                placeholder="Auto-creates 'Twoly Couple Space' if empty" 
+                                bind:value={gdriveFolderUrl} 
+                            />
+                            {#if verifiedFolderName}
+                                <p class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 mt-1">
+                                    <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    Folder linked: {verifiedFolderName}
+                                </p>
+                            {:else}
+                                <p class="text-[10.5px] text-gray-400 font-medium">Subfolders will be generated automatically for each memory.</p>
+                            {/if}
+                        </div>
                     </div>
                 {/if}
 
-                <div class="pt-3">
-                    <Button type="submit" variant="secondary" size="md" class="w-full shadow-sm hover:shadow-md transition-all border-gray-100" isLoading={isSavingGDrive}>
+                <div class="pt-1">
+                    <Button type="submit" variant="secondary" size="md" class="w-full shadow-xs hover:shadow-sm transition-all border-gray-100" isLoading={isSavingGDrive}>
                         Save Storage Settings
                     </Button>
                 </div>
