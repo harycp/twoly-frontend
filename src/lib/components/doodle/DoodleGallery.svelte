@@ -1,18 +1,21 @@
 <script lang="ts">
 	import { fade, fly } from 'svelte/transition';
 	import type { DoodleItem } from '$lib/types/doodle.types';
+	import AlertDialog from '$lib/components/common/AlertDialog.svelte';
 
 	interface Props {
 		isOpen: boolean;
 		doodles: DoodleItem[];
 		isLoading: boolean;
-		onDelete: (id: string) => void;
+		onDelete: (id: string) => Promise<void> | void;
 		onClose: () => void;
 	}
 
 	let { isOpen, doodles, isLoading, onDelete, onClose }: Props = $props();
 
 	let selectedDoodle = $state<DoodleItem | null>(null);
+	let doodleToDeleteId = $state<string | null>(null);
+	let isConfirmOpen = $state(false);
 	let isDeleting = $state(false);
 
 	function formatDate(dateStr: string) {
@@ -20,8 +23,14 @@
 		return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 	}
 
-	async function handleDelete(id: string) {
-		if (!confirm('Are you sure you want to delete this doodle?')) return;
+	function promptDelete(id: string) {
+		doodleToDeleteId = id;
+		isConfirmOpen = true;
+	}
+
+	async function handleConfirmDelete() {
+		if (!doodleToDeleteId) return;
+		const id = doodleToDeleteId;
 		isDeleting = true;
 		try {
 			await onDelete(id);
@@ -30,6 +39,7 @@
 			}
 		} finally {
 			isDeleting = false;
+			doodleToDeleteId = null;
 		}
 	}
 </script>
@@ -198,7 +208,7 @@
 				<button
 					type="button"
 					aria-label="Delete doodle"
-					onclick={() => selectedDoodle && handleDelete(selectedDoodle.id)}
+					onclick={() => selectedDoodle && promptDelete(selectedDoodle.id)}
 					disabled={isDeleting}
 					class="flex items-center justify-center rounded-2xl bg-rose-50 px-4 py-3 text-xs font-black text-rose-500 hover:bg-rose-100 active:scale-95 disabled:opacity-50"
 				>
@@ -214,3 +224,13 @@
 		</div>
 	</div>
 {/if}
+
+<AlertDialog
+	bind:isOpen={isConfirmOpen}
+	title="Delete Doodle?"
+	message="Are you sure you want to delete this doodle? This action cannot be undone."
+	confirmText="Delete"
+	cancelText="Cancel"
+	isDestructive={true}
+	onConfirm={handleConfirmDelete}
+/>
