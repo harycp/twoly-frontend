@@ -56,7 +56,7 @@
 		<input
 			bind:this={customInputRef}
 			type="color"
-			value={selectedColor}
+			value={selectedColor && /^#[0-9A-Fa-f]{6}$/.test(selectedColor) ? selectedColor : '#FB7185'}
 			oninput={(e) => onSelect((e.target as HTMLInputElement).value)}
 			class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
 			aria-label="Pick custom color"
